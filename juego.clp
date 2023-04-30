@@ -26,10 +26,6 @@
 
 (deffunction movimientosLegalesB (?dado1 ?dado2 $?fichas) ;COMPLETAR CUANDO TIENES FICHAS MUERTAS
     (bind ?movimientos (create$))
-
-    (bind ?fichasN  (nth$ 1 $?fichas))
-    (bind ?fichasB (nth$ 2 $?fichas))
-
     (loop-for-count (?i 24)
         ;if there is a fichaB in the i position
         (if (> (nth$ ?i ?fichasB) 0) then
@@ -297,15 +293,15 @@
     (if (eq ?color N)
         then
             (if (eq ?tipo 1) then
-                (assert (moverFichaNegras ?dado1 ?dado2 ?fichasN ?fichasB)) ;mueve fichas blancas humano
+                (assert (moverFichaNegras ?dado1 ?dado2 (create$ ?fichasN ?fichasB))) ;mueve fichas blancas humano
             else
-                (assert (moverFichaNegrasPC ?dado1 ?dado2 ?fichasN ?fichasB))   ;mueve fichas blancas IA
+                (assert (moverFichaNegrasPC ?dado1 ?dado2 (create$ ?fichasN ?fichasB)))   ;mueve fichas blancas IA
             )
     else
         (if (eq ?tipo2 1) then
-            (assert (moverFichaNegras ?dado1 ?dado2 ?fichasN ?fichasB)) ;mueve fichas blancas humano
+            (assert (moverFichaNegras ?dado1 ?dado2 (create$ ?fichasN ?fichasB))) ;mueve fichas blancas humano
         else
-            (assert (moverFichaNegrasPC ?dado1 ?dado2 ?fichasN ?fichasB))   ;mueve fichas blancas IA
+            (assert (moverFichaNegrasPC ?dado1 ?dado2 (create$ ?fichasN ?fichasB)))   ;mueve fichas blancas IA
         )
     )
 )
@@ -338,30 +334,29 @@
     (if (eq ?color B)
         then
             (if (eq ?tipo 1) then
-                (assert (moverFichaBlancas ?dado1 ?dado2 ?fichasN ?fichasB)) ;mueve fichas blancas humano
+                (assert (moverFichaBlancas ?dado1 ?dado2 (create$ ?fichasN ?fichasB))) ;mueve fichas blancas humano
             else
-                (assert (moverFichaBlancasPC ?dado1 ?dado2 ?fichasN ?fichasB))   ;mueve fichas blancas IA
+                (assert (moverFichaBlancasPC ?dado1 ?dado2 (create$ ?fichasN ?fichasB)))   ;mueve fichas blancas IA
             )
     else
         (if (eq ?tipo2 1) then
-            (assert (moverFichaBlancas ?dado1 ?dado2 ?fichasN ?fichasB)) ;mueve fichas blancas humano
+            (assert (moverFichaBlancas ?dado1 ?dado2 (create$ ?fichasN ?fichasB))) ;mueve fichas blancas humano
         else
-            (assert (moverFichaBlancasPC ?dado1 ?dado2 ?fichasN ?fichasB))   ;mueve fichas blancas IA
+            (assert (moverFichaBlancasPC ?dado1 ?dado2 (create$ ?fichasN ?fichasB)))   ;mueve fichas blancas IA
         )
     )
 )
 
 (defrule moverFichaNegras
     (declare (salience 1)) ; a lo mejor hay que cambiar la saliencia
-    ;?x <-(moverFichaNegras ?dado1 ?dado2 ?fichasN ?fichasB)
+    ?x <-(moverFichaNegras ?dado1 ?dado2 $?datos)
     (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (fichasN $?fichasN) (fichasB $?fichasB))
 =>
 
     ;(retract ?x) ;Quito el turno actual
 
     (printout t "Turno de las fichas negras." crlf )
-
-    ;(bind ?fichasN (moverFichaN ?dado1 ?dado2 ?fichasN ?fichasB)) ;mueve fichas negras
+    (bind ?movimientosDisponibles (movimientosLegalesB ?dado1 ?dado2 (create$ ?fichasN ?fichasB)))
 
     (assert (tablero (id ?id) (idPadre ?idPadre) (turno 2) (jugadores $?jugadores) (fichasN ?fichasN) (fichasB ?fichasB)))
 
@@ -369,11 +364,11 @@
 
 (defrule moverFichaBlancas
     (declare (salience 1)) ; a lo mejor hay que cambiar la saliencia
-    ?x <-(moverFichaBlancas ?dado1 ?dado2 ?fichas)
+    ?x <-(moverFichaBlancas ?dado1 ?dado2 $?datos)
     (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (fichasN $?fichasN) (fichasB $?fichasB))
 =>
 
-    (bind ?movimientosDisponibles (movimientosLegalesB ?dado1 ?dado2 (create$ ?fichasN ?fichasB)))
+    (bind ?movimientosDisponibles (movimientosLegalesB ?dado1 ?dado2 (create$ ?fichasN ?fichasB))) ;error aqui no se porque
     (printout t "Movimientos disponibles: " ?movimientosDisponibles crlf )
     (retract ?x) ;Quito el turno actual
 
