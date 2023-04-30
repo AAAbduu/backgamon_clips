@@ -73,6 +73,7 @@
     (bind ?color1 "none")
     (printout t "¿Qué color quieres coger? (N o B): " )
     (bind ?color1 (read))
+    (bind ?color1 (sym-cat ?color1))
     (bind ?j1 (assert (jugador (tipo ?tipo1) (color ?color1))))
 
     
@@ -81,10 +82,10 @@
 
     (printout t "¿Serás humano o IA? (1 para humano, 2 para IA):" )
     (bind ?tipo2 (read))
-    (if (eq ?color1 "N") then
-        (bind ?color2 "B")
+    (if (eq ?color1 N) then
+        (bind ?color2 B)
     else
-        (bind ?color2 "N")
+        (bind ?color2 N)
     )
     (bind ?j2 (assert (jugador (tipo ?tipo2) (color ?color2))))
 
@@ -272,6 +273,12 @@
     (declare (salience 1))
     ?x <-(turnoNegras)
     (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (fichasN $?fichasN) (fichasB $?fichasB))
+    ;get player with fichas "N"
+    ?j1 <- (jugador (tipo ?tipo) (color ?color))
+    ?j2 <- (jugador (tipo ?tipo2) (color ?color2))
+
+    (test (neq ?j1 ?j2))
+
 =>
     (retract ?x) ;Quito el turno actual
     (bind ?dado1 (random 1 6))
@@ -287,10 +294,19 @@
 
     )
     ;check if jugador negras is human
-    (if (eq (nth$ 1 ?jugadores) 1) then ;CORREGIR
-        (assert (moverFichaNegras ?dado1 ?dado2 ?fichasN ?fichasB)) ;mueve fichas negras humano
+    (if (eq ?color N)
+        then
+            (if (eq ?tipo 1) then
+                (assert (moverFichaNegras ?dado1 ?dado2 ?fichasN ?fichasB)) ;mueve fichas blancas humano
+            else
+                (assert (moverFichaNegrasPC ?dado1 ?dado2 ?fichasN ?fichasB))   ;mueve fichas blancas IA
+            )
     else
-        (assert (moverFichaNegrasPC ?dado1 ?dado2 ?fichasN ?fichasB))   ;mueve fichas negras IA
+        (if (eq ?tipo2 1) then
+            (assert (moverFichaNegras ?dado1 ?dado2 ?fichasN ?fichasB)) ;mueve fichas blancas humano
+        else
+            (assert (moverFichaNegrasPC ?dado1 ?dado2 ?fichasN ?fichasB))   ;mueve fichas blancas IA
+        )
     )
 )
 
@@ -298,6 +314,11 @@
     (declare (salience 1))
     ?x <-(turnoBlancas)
     (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (fichasN $?fichasN) (fichasB $?fichasB))
+    ?j1 <- (jugador (tipo ?tipo) (color ?color))
+    ?j2 <- (jugador (tipo ?tipo2) (color ?color2))
+    (test (neq ?j1 ?j2))
+
+
 =>
 
     (retract ?x) ;Quito el turno actual
@@ -314,10 +335,19 @@
 
     )
     ;check if jugador blancas is human
-    (if (eq (nth$ 2 ?jugadores) 1) then ;CORREGIR
-        (assert (moverFichaBlancas ?dado1 ?dado2 (create$ ?fichasN ?fichasB))) ;mueve fichas blancas humano
+    (if (eq ?color B)
+        then
+            (if (eq ?tipo 1) then
+                (assert (moverFichaBlancas ?dado1 ?dado2 ?fichasN ?fichasB)) ;mueve fichas blancas humano
+            else
+                (assert (moverFichaBlancasPC ?dado1 ?dado2 ?fichasN ?fichasB))   ;mueve fichas blancas IA
+            )
     else
-        (assert (moverFichaBlancasPC ?dado1 ?dado2 (create$ ?fichasN ?fichasB)))   ;mueve fichas blancas IA
+        (if (eq ?tipo2 1) then
+            (assert (moverFichaBlancas ?dado1 ?dado2 ?fichasN ?fichasB)) ;mueve fichas blancas humano
+        else
+            (assert (moverFichaBlancasPC ?dado1 ?dado2 ?fichasN ?fichasB))   ;mueve fichas blancas IA
+        )
     )
 )
 
