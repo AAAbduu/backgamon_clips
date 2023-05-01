@@ -26,28 +26,40 @@
 
 (deffunction movimientosLegalesB (?dado1 ?dado2 $?fichas) ;COMPLETAR CUANDO TIENES FICHAS MUERTAS
     (bind ?movimientos (create$))
+    (bind ?nMovimiento (create$))
+    (printout t "var fichas: "?fichas crlf)
+    (bind ?fichasB (subseq$ ?fichas 1 24))
+    (bind ?fichasN (subseq$ ?fichas 25 48))
+
+    (printout t "var fichasB: "?fichasB crlf)
+    (printout t "var fichasN: "?fichasN crlf)
+
     (loop-for-count (?i 24)
         ;if there is a fichaB in the i position
         (if (> (nth$ ?i ?fichasB) 0) then
             ;if the fichaB can move
-            (bind ?nMovimiento  (create$ ?i (+ ?i ?dado1)) 1)) ;origen, destino, tipo
+            (bind ?nMovimiento  (create$ ?i (+ ?i ?dado1)) 1) ;origen, destino, tipo
 
-            (if (< (nth$ (+ ?i ?dado1) ?fichasN) 2) then;Si puedo mover la ficha i con el dado 1
+            (printout t "error: "(nth$ (+ ?i ?dado1) ?fichasB) crlf)
+
+            (if (and(< (+ ?i ?dado1) 25)(< (nth$ (+ ?i ?dado1) ?fichasN) 2)) then;Si puedo mover la ficha i con el dado 1
                 (if (eq (nth$ (+ ?i ?dado1) ?fichasN) 1) then ;Si hay una ficha negra en la posicion a la que me muevo
                     (bind ?nMovimiento (create$ ?i (+ ?i ?dado1)) 2)
                 )
                 
                 (bind ?movimientos (create$ ?movimientos ?nMovimiento))
             )
-            (if (< (nth$ (+ ?i ?dado2) ?fichasN) 2) then ;Si puedo mover la ficha i con el dado 2
+            (if (and (< (+ ?i ?dado2) 25) (< (nth$ (+ ?i ?dado2) ?fichasN) 2)) then ;Si puedo mover la ficha i con el dado 2
                 (bind ?nMovimiento (create$ ?i (+ ?i ?dado2)) 1)
                 (if (eq (nth$ (+ ?i ?dado2) ?fichasN) 1) then ;Si hay una ficha negra en la posicion a la que me muevo
                     (bind ?nMovimiento (create$ ?i (+ ?i ?dado2)) 2)
+                )
+
                 (bind ?movimientos (create$ ?movimientos ?nMovimiento))
+
             )
         )
     )
-
     (return ?movimientos)
 )
 
@@ -353,12 +365,13 @@
     (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (fichasN $?fichasN) (fichasB $?fichasB))
 =>
 
-    ;(retract ?x) ;Quito el turno actual
 
     (printout t "Turno de las fichas negras." crlf )
     (bind ?movimientosDisponibles (movimientosLegalesB ?dado1 ?dado2 (create$ ?fichasN ?fichasB)))
+    (printout t "Movimientos disponibles: " ?movimientosDisponibles crlf )
+    ;(assert (tablero (id ?id) (idPadre ?idPadre) (turno 2) (jugadores $?jugadores) (fichasN ?fichasN) (fichasB ?fichasB)))
+    (retract ?x) ;Quito el turno actual
 
-    (assert (tablero (id ?id) (idPadre ?idPadre) (turno 2) (jugadores $?jugadores) (fichasN ?fichasN) (fichasB ?fichasB)))
 
 )
 
@@ -367,8 +380,8 @@
     ?x <-(moverFichaBlancas ?dado1 ?dado2 $?datos)
     (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (fichasN $?fichasN) (fichasB $?fichasB))
 =>
-
-    (bind ?movimientosDisponibles (movimientosLegalesB ?dado1 ?dado2 (create$ ?fichasN ?fichasB))) ;error aqui no se porque
+    (bind ?fichas (create$ ?fichasN ?fichasB))
+    (bind ?movimientosDisponibles (movimientosLegalesB ?dado1 ?dado2 $?fichas)) ;error aqui no se porque
     (printout t "Movimientos disponibles: " ?movimientosDisponibles crlf )
     (retract ?x) ;Quito el turno actual
 
