@@ -16,8 +16,7 @@
     (slot idPadre (type INTEGER))
     (slot turno (type INTEGER))
     (multislot jugadores (type INSTANCE) (allowed-classes jugador)(cardinality 2 2))
-    (multislot fichasN (type INTEGER)(cardinality 24 24)) 
-    (multislot fichasB (type INTEGER)(cardinality 24 24)) 
+    (multislot juego (type INTEGER)(cardinality 24 24)) ;tendra el tablero, 24 posiciones, enteros negativo para las fichas negras y positivo para las blancas
 )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -28,31 +27,35 @@
     (bind ?movimientos (create$))
     (bind ?nMovimiento (create$))
     (printout t "var fichas: "?fichas crlf)
-    (bind ?fichasB (subseq$ ?fichas 1 24))
-    (bind ?fichasN (subseq$ ?fichas 25 48))
 
-    (printout t "var fichasB: "?fichasB crlf)
-    (printout t "var fichasN: "?fichasN crlf)
 
     (loop-for-count (?i 24)
         ;if there is a fichaB in the i position
-        (if (> (nth$ ?i ?fichasB) 0) then
+        (if (> (nth$ ?i ?fichas) 0) then
             ;if the fichaB can move
-            (bind ?nMovimiento  (create$ ?i (+ ?i ?dado1)) 1) ;origen, destino, tipo
 
-            (printout t "error: "(nth$ (+ ?i ?dado1) ?fichasB) crlf)
-
-            (if (and(< (+ ?i ?dado1) 25)(< (nth$ (+ ?i ?dado1) ?fichasN) 2)) then;Si puedo mover la ficha i con el dado 1
-                (if (eq (nth$ (+ ?i ?dado1) ?fichasN) 1) then ;Si hay una ficha negra en la posicion a la que me muevo
-                    (bind ?nMovimiento (create$ ?i (+ ?i ?dado1)) 2)
+            (if (and(< (+ ?i ?dado1) 25)(> (nth$ (+ ?i ?dado1) ?fichas) -2)) then;Si puedo mover la ficha i con el dado 1
+                (bind ?nMovimiento  (create$ ?i (+ ?i ?dado1)) 1) ;origen, destino, tipo
+                (if (eq (nth$ (+ ?i ?dado1) ?fichas) -1) then ;Si hay una ficha negra en la posicion a la que me muevo
+                    (bind ?nMovimiento (create$ ?i (+ ?i ?dado1)) 2) ;origen, destino, tipo: como pieza
                 )
                 
                 (bind ?movimientos (create$ ?movimientos ?nMovimiento))
             )
-            (if (and (< (+ ?i ?dado2) 25) (< (nth$ (+ ?i ?dado2) ?fichasN) 2)) then ;Si puedo mover la ficha i con el dado 2
+            (if (and(and (< (+ ?i ?dado2) 25) (> (nth$ (+ ?i ?dado2) ?fichas) -2))(neq ?dado1 ?dado2)) then ;Si puedo mover la ficha i con el dado 2
                 (bind ?nMovimiento (create$ ?i (+ ?i ?dado2)) 1)
-                (if (eq (nth$ (+ ?i ?dado2) ?fichasN) 1) then ;Si hay una ficha negra en la posicion a la que me muevo
+                (if (eq (nth$ (+ ?i ?dado2) ?fichas) -1) then ;Si hay una ficha negra en la posicion a la que me muevo
                     (bind ?nMovimiento (create$ ?i (+ ?i ?dado2)) 2)
+                )
+
+                (bind ?movimientos (create$ ?movimientos ?nMovimiento))
+
+            )
+            (bind ?sumaDadosi (+(+ ?i ?dado2)?dado1))
+            (if (and (< ?sumaDadosi 25) (> (nth$ ?sumaDadosi ?fichas) -2)) then ;Si puedo mover la ficha i con la suma de los dados
+                (bind ?nMovimiento (create$ ?i ?sumaDadosi) 1)
+                (if (eq (nth$ ?sumaDadosi ?fichas) -1) then ;Si hay una ficha negra en la posicion a la que me muevo
+                    (bind ?nMovimiento (create$ ?i ?sumaDadosi) 2)
                 )
 
                 (bind ?movimientos (create$ ?movimientos ?nMovimiento))
@@ -61,6 +64,49 @@
         )
     )
     (return ?movimientos)
+)
+
+(deffunction movimientosLegalesN (?dado1 ?dado2 $?fichas) ;COMPLETAR CUANDO TIENES FICHAS MUERTAS
+    (bind ?movimientos (create$))
+    (bind ?nMovimiento (create$))
+    (printout t "var fichas: "?fichas crlf)
+
+    (loop-for-count (?i 24)
+    ;if there is a fichaN in the i position
+    (if (< (nth$ ?i ?fichas) 0) then
+        ;if the fichaN can move
+
+        (if (and(< (+ ?i ?dado1) 25)(< (nth$ (+ ?i ?dado1) ?fichas) 2)) then;Si puedo mover la ficha i con el dado 1
+            (bind ?nMovimiento  (create$ ?i (+ ?i ?dado1)) 1) ;origen, destino, tipo
+            (if (eq (nth$ (+ ?i ?dado1) ?fichas) 1) then ;Si hay una ficha blanca en la posicion a la que me muevo
+                (bind ?nMovimiento (create$ ?i (+ ?i ?dado1)) 2) ;origen, destino, tipo: como pieza
+            )
+            
+            (bind ?movimientos (create$ ?movimientos ?nMovimiento))
+        )
+        (if (and (and (< (+ ?i ?dado2) 25) (< (nth$ (+ ?i ?dado2) ?fichas) 2))(neq ?dado1 ?dado2)) then ;Si puedo mover la ficha i con el dado 2
+            (bind ?nMovimiento (create$ ?i (+ ?i ?dado2)) 1)
+            (if (eq (nth$ (+ ?i ?dado2) ?fichas) 1) then ;Si hay una ficha blanca en la posicion a la que me muevo
+                (bind ?nMovimiento (create$ ?i (+ ?i ?dado2)) 2)
+            )
+
+            (bind ?movimientos (create$ ?movimientos ?nMovimiento))
+
+        )
+        (bind ?sumaDadosi (+(+ ?i ?dado2)?dado1))
+        (if (and (< ?sumaDadosi 25) (< (nth$ ?sumaDadosi ?fichas) 2)) then ;Si puedo mover la ficha i con la suma de los dados
+            (bind ?nMovimiento (create$ ?i ?sumaDadosi) 1)
+            (if (eq (nth$ ?sumaDadosi ?fichas) 1) then ;Si hay una ficha blanca en la posicion a la que me muevo
+                (bind ?nMovimiento (create$ ?i ?sumaDadosi) 2)
+            )
+
+            (bind ?movimientos (create$ ?movimientos ?nMovimiento))
+
+        )
+    )
+    )
+    (return ?movimientos)
+
 )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -146,23 +192,21 @@
 
     (if (and (eq ?cCJ1 1) (eq ?moneda 1)) then
         (printout t "Jugador 1 empieza." crlf )
-        (bind ?turno 1)
+        (bind ?turno ?color1)
 
     else
         (if (and (eq ?cCJ1 2) (eq ?moneda 2)) then
             (printout t "Jugador 1 empieza." crlf )
-            (bind ?turno 1)
+            (bind ?turno ?color1)
         else
             (printout t "Jugador 2 empieza." crlf )
-            (bind ?turno 2)
+            (bind ?turno ?color2)
         )
     )
 
     ;crear tablero inicial
     (bind ?tablero (assert (tablero (id 1) (idPadre 0) (turno ?turno)
-     (jugadores ?j1 ?j2) (fichasN 0 0 0 0 0 5 0 3 0 0 0 0 5 0 0 0 0 0 0 0 0 0 0 2) ; desde la posicion 1
-                         (fichasB 2 0 0 0 0 0 0 0 0 0 0 5 0 0 0 0 3 0 5 0 0 0 0 0)))) ; desde la posicion 1
-
+     (jugadores ?j1 ?j2) (juego 2 0 0 0 0 -5 0 -3 0 0 0 5 -5 0 0 0 3 0 5 0 0 0 0 -2)))) ; desde la posicion 1
     (assert (imprimirTablero))
 
 )
@@ -170,7 +214,7 @@
 (defrule imprimirTablero
     (declare (salience 1))
     ?x <-(imprimirTablero)
-    (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (fichasN $?fichasN) (fichasB $?fichasB))
+    (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego $?fichas))
 =>
 
     (printout t crlf )
@@ -191,22 +235,18 @@
 
     (loop-for-count (?i 13 24)
         ;Print as many N as fichasN[i] has
-        ;print as many B as fichasB[i] has
+        ;print as many B as [i] has
 
-        (if (and (eq (nth$ ?i ?fichasN) 0) (eq (nth$ ?i ?fichasB) 0)) then
+        (if (eq (nth$ ?i ?fichas) 0) then
             (printout t "00" "|" )
         else
-            (if (neq (nth$ ?i ?fichasN) 0) then
-                (printout t (nth$ ?i ?fichasN)"N" "|" )
+            (if (< (nth$ ?i ?fichas) 0) then
+                (printout t (* (nth$ ?i ?fichas)-1)"N" "|" )
             )
-            (if (neq (nth$ ?i ?fichasB) 0) then
-                (printout t (nth$ ?i ?fichasB)"B" "|" )
+            (if (> (nth$ ?i ?fichas) 0) then
+                (printout t (nth$ ?i ?fichas)"B" "|" )
             )
         )
-        
-        ;(printout t (nth$ ?i ?fichasN)"N" " " )
-
-        ;(printout t (nth$ ?i ?fichasB)"B" " " )
 
     )
 
@@ -214,22 +254,19 @@
     (printout t crlf )
     (printout t crlf )
 
-    (bind ?j 0)
-    (loop-for-count (?i 12 23)
+    (loop-for-count (?i 1 12)
 
-        (if (and (eq (nth$ (- ?i ?j) ?fichasN) 0) (eq (nth$ (- ?i ?j) ?fichasB) 0)) then
+        (if (eq (nth$ (- 13 ?i) ?fichas) 0) then
             (printout t "00" "|" )
         else
-            (if (neq (nth$ (- ?i ?j) ?fichasN) 0) then
-                (printout t (nth$ (- ?i ?j) ?fichasN)"N" "|" )
+            (if (< (nth$ (- 13 ?i) ?fichas) 0) then
+                (printout t (*(nth$ (- 13 ?i) ?fichas)-1)"N" "|" )
             )
-            (if (neq (nth$ (- ?i ?j) ?fichasB) 0) then
-                (printout t (nth$ (- ?i ?j) ?fichasB)"B" "|" )
+            (if (> (nth$ (- 13 ?i) ?fichas) 0) then
+                (printout t (nth$ (- 13 ?i) ?fichas)"B" "|" )
             )
 
         )
-
-        (bind ?j (+ ?j 2))
     )
 
     (printout t crlf )
@@ -260,13 +297,12 @@
                 "idPadre: "?idPadre crlf
                 "turno: "?turno crlf
                 "jugadores: "?jugadores crlf
-                "fichasN: "?fichasN crlf
-                "fichasB: "?fichasB crlf
+                "juego: "?fichas crlf
     )
 
     (retract ?x)
 
-    (if (eq ?turno 1) then
+    (if (eq ?turno N) then
         (printout t "Turno de las fichas negras." crlf )
         (assert (turnoNegras))
     else
@@ -280,7 +316,8 @@
 (defrule turnoNegras
     (declare (salience 1))
     ?x <-(turnoNegras)
-    (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (fichasN $?fichasN) (fichasB $?fichasB))
+    (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego $?fichas))
+    (test (eq ?turno N))
     ;get player with fichas "N"
     ?j1 <- (jugador (tipo ?tipo) (color ?color))
     ?j2 <- (jugador (tipo ?tipo2) (color ?color2))
@@ -305,15 +342,15 @@
     (if (eq ?color N)
         then
             (if (eq ?tipo 1) then
-                (assert (moverFichaNegras ?dado1 ?dado2 (create$ ?fichasN ?fichasB))) ;mueve fichas blancas humano
+                (assert (moverFichaNegras ?dado1 ?dado2 ?fichas)) ;mueve fichas blancas humano
             else
-                (assert (moverFichaNegrasPC ?dado1 ?dado2 (create$ ?fichasN ?fichasB)))   ;mueve fichas blancas IA
+                (assert (moverFichaNegrasPC ?dado1 ?dado2 ?fichas))   ;mueve fichas blancas IA
             )
     else
         (if (eq ?tipo2 1) then
-            (assert (moverFichaNegras ?dado1 ?dado2 (create$ ?fichasN ?fichasB))) ;mueve fichas blancas humano
+            (assert (moverFichaNegras ?dado1 ?dado2 ?fichas)) ;mueve fichas blancas humano
         else
-            (assert (moverFichaNegrasPC ?dado1 ?dado2 (create$ ?fichasN ?fichasB)))   ;mueve fichas blancas IA
+            (assert (moverFichaNegrasPC ?dado1 ?dado2 ?fichas))   ;mueve fichas blancas IA
         )
     )
 )
@@ -321,7 +358,8 @@
 (defrule turnoBlancas
     (declare (salience 1))
     ?x <-(turnoBlancas)
-    (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (fichasN $?fichasN) (fichasB $?fichasB))
+    (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego $?fichas))
+    (test (eq ?turno B))
     ?j1 <- (jugador (tipo ?tipo) (color ?color))
     ?j2 <- (jugador (tipo ?tipo2) (color ?color2))
     (test (neq ?j1 ?j2))
@@ -346,15 +384,15 @@
     (if (eq ?color B)
         then
             (if (eq ?tipo 1) then
-                (assert (moverFichaBlancas ?dado1 ?dado2 (create$ ?fichasN ?fichasB))) ;mueve fichas blancas humano
+                (assert (moverFichaBlancas ?dado1 ?dado2 ?fichas)) ;mueve fichas blancas humano
             else
-                (assert (moverFichaBlancasPC ?dado1 ?dado2 (create$ ?fichasN ?fichasB)))   ;mueve fichas blancas IA
+                (assert (moverFichaBlancasPC ?dado1 ?dado2 ?fichas))   ;mueve fichas blancas IA
             )
     else
         (if (eq ?tipo2 1) then
-            (assert (moverFichaBlancas ?dado1 ?dado2 (create$ ?fichasN ?fichasB))) ;mueve fichas blancas humano
+            (assert (moverFichaBlancas ?dado1 ?dado2 ?fichas)) ;mueve fichas blancas humano
         else
-            (assert (moverFichaBlancasPC ?dado1 ?dado2 (create$ ?fichasN ?fichasB)))   ;mueve fichas blancas IA
+            (assert (moverFichaBlancasPC ?dado1 ?dado2 ?fichas))   ;mueve fichas blancas IA
         )
     )
 )
@@ -362,14 +400,14 @@
 (defrule moverFichaNegras
     (declare (salience 1)) ; a lo mejor hay que cambiar la saliencia
     ?x <-(moverFichaNegras ?dado1 ?dado2 $?datos)
-    (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (fichasN $?fichasN) (fichasB $?fichasB))
+    (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego $?fichas))
 =>
 
 
     (printout t "Turno de las fichas negras." crlf )
-    (bind ?movimientosDisponibles (movimientosLegalesB ?dado1 ?dado2 (create$ ?fichasN ?fichasB)))
+    (bind ?movimientosDisponibles (movimientosLegalesN ?dado1 ?dado2 ?fichas))
     (printout t "Movimientos disponibles: " ?movimientosDisponibles crlf )
-    ;(assert (tablero (id ?id) (idPadre ?idPadre) (turno 2) (jugadores $?jugadores) (fichasN ?fichasN) (fichasB ?fichasB)))
+    ;(assert (tablero (id ?id) (idPadre ?idPadre) (turno 2) (jugadores $?jugadores) (fichasN ?fichasN) ( ?)))
     (retract ?x) ;Quito el turno actual
 
 
@@ -378,10 +416,9 @@
 (defrule moverFichaBlancas
     (declare (salience 1)) ; a lo mejor hay que cambiar la saliencia
     ?x <-(moverFichaBlancas ?dado1 ?dado2 $?datos)
-    (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (fichasN $?fichasN) (fichasB $?fichasB))
+    (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego $?fichas))
 =>
-    (bind ?fichas (create$ ?fichasN ?fichasB))
-    (bind ?movimientosDisponibles (movimientosLegalesB ?dado1 ?dado2 $?fichas)) ;error aqui no se porque
+    (bind ?movimientosDisponibles (movimientosLegalesB ?dado1 ?dado2 ?fichas)) ;error aqui no se porque
     (printout t "Movimientos disponibles: " ?movimientosDisponibles crlf )
     (retract ?x) ;Quito el turno actual
 
