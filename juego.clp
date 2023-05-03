@@ -335,7 +335,7 @@
 (defrule turnoNegras
     (declare (salience 1))
     ?x <-(turnoNegras)
-    (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego $?fichas))
+    ?t <- (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego $?fichas))
     (test (eq ?turno N))
     ;get player with fichas "N"
     ?j1 <- (jugador (tipo ?tipo) (color ?color))
@@ -344,7 +344,6 @@
     (test (neq ?j1 ?j2))
 
 =>
-    (retract ?x) ;Quito el turno actual
     (bind ?dado1 (random 1 6))
     (bind ?dado2 (random 1 6))  ;tiro los dados
 
@@ -372,12 +371,18 @@
             (assert (moverFichaNegrasPC ?dado1 ?dado2 ?fichas))   ;mueve fichas blancas IA
         )
     )
+
+    (bind ?turnoN B)    
+    (retract ?t)
+    (retract ?x)
+    (assert(tablero (id ?id) (idPadre ?idPadre) (turno ?turnoN) (jugadores ?jugadores) (juego ?fichas)))
+    (assert (turnoBlancas))
 )
 
 (defrule turnoBlancas
     (declare (salience 1))
     ?x <-(turnoBlancas)
-    (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego $?fichas))
+    ?t <-(tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego $?fichas))
     (test (eq ?turno B))
     ?j1 <- (jugador (tipo ?tipo) (color ?color))
     ?j2 <- (jugador (tipo ?tipo2) (color ?color2))
@@ -385,8 +390,6 @@
 
 
 =>
-
-    (retract ?x) ;Quito el turno actual
     (bind ?dado1 (random 1 6))
     (bind ?dado2 (random 1 6))  ;tiro los dados
 
@@ -414,10 +417,15 @@
             (assert (moverFichaBlancasPC ?dado1 ?dado2 ?fichas))   ;mueve fichas blancas IA
         )
     )
+    (bind ?turnoN N)
+    (retract ?t)
+    (retract ?x)
+    (assert(tablero (id ?id) (idPadre ?idPadre) (turno ?turnoN) (jugadores ?jugadores) (juego ?fichas)))
+    (assert (turnoNegras))
 )
 
 (defrule moverFichaNegras
-    (declare (salience 1)) ; a lo mejor hay que cambiar la saliencia
+    (declare (salience 2)) ; a lo mejor hay que cambiar la saliencia
     ?x <-(moverFichaNegras ?dado1 ?dado2 $?datos)
     (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego $?fichas))
 =>
@@ -461,12 +469,10 @@
 
     )
     (retract ?x) ;Quito el turno actual
-
-
 )
 
 (defrule moverFichaBlancas
-    (declare (salience 1)) ; a lo mejor hay que cambiar la saliencia
+    (declare (salience 2)) ; a lo mejor hay que cambiar la saliencia
     ?x <-(moverFichaBlancas ?dado1 ?dado2 $?datos)
     (test (or(neq ?dado1 0)(neq ?dado2 0))) ; compruebo que no sean 0 los 2 dados
     (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego $?fichas))
@@ -506,6 +512,7 @@
         )
 
     )
+    (retract ?x) ;Quito el turno actual
 
 )
 
