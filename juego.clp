@@ -128,6 +128,32 @@
     )
 )
 
+(deffunction moverFicha (?origen ?destino ?turno ?fichas)
+
+
+    (bind ?queHayO (nth$ ?origen ?fichas))
+    (bind ?queHayD (nth$ ?destino ?fichas))
+
+    (if (eq ?turno N) then ;hay que comprobar antes si come pieza 
+        (printout t "antes de mover: " ?fichas crlf)
+        (bind ?fichas (replace$ ?fichas ?destino ?destino (- ?queHayD 1))); caso generico no como
+        (bind ?fichas (replace$ ?fichas ?origen ?origen (+ ?queHayO 1))); caso generico no como
+
+        (printout t "despues de mover: " ?fichas crlf)
+
+    else
+        (printout t "antes de mover: " ?fichas crlf)
+        (bind ?fichas (replace$ ?fichas ?destino ?destino (+ ?queHayD 1))); caso generico no como
+        (bind ?fichas (replace$ ?fichas ?origen ?origen (- ?queHayO 1))); caso generico no como
+
+        (printout t "despues de mover: " ?fichas crlf)
+
+    )
+
+    (return ?fichas)
+
+)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
@@ -231,7 +257,7 @@
 )
 
 (defrule imprimirTablero
-    (declare (salience 1))
+    (declare (salience 3))
     ?x <-(imprimirTablero)
     (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego $?fichas))
 =>
@@ -427,13 +453,12 @@
 (defrule moverFichaNegras
     (declare (salience 2)) ; a lo mejor hay que cambiar la saliencia
     ?x <-(moverFichaNegras ?dado1 ?dado2 $?datos)
-    (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego $?fichas))
+    ?t <- (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego $?fichas))
 =>
 
 
     (printout t "Turno de las fichas negras." crlf )
     (bind ?movimientosDisponibles (movimientosLegalesN ?dado1 ?dado2 ?fichas))
-    (printout t "Movimientos disponibles: " ?movimientosDisponibles crlf )
     (bind ?cantMov (length$ ?movimientosDisponibles))
     (imprimirMovimientos ?cantMov ?movimientosDisponibles)
     (imprimirMovimientos ?cantMov ?movimientosDisponibles)
@@ -446,8 +471,12 @@
     (bind ?origen (nth$ (- ?i 2) ?movimientosDisponibles))
     (bind ?destino (nth$ (- ?i 1) ?movimientosDisponibles))
 
-    (printout t "Origen: " ?origen crlf )
-    (printout t "Destino: " ?destino crlf )
+    (bind ?fichas (moverFicha ?origen ?destino N $?fichas)) ;actualizo las fichas con el movimiento
+
+    (retract ?t) ;elimino el tablero anterior
+    (assert (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego ?fichas))) ;actualizo el tablero
+
+
 
     (if (and(eq (- ?destino ?origen) ?dado1)(neq ?dado2 0)) then
         (retract ?x) ;Quito el turno actual
@@ -468,6 +497,7 @@
         )
 
     )
+    (assert (imprimirTablero))
     (retract ?x) ;Quito el turno actual
 )
 
@@ -475,10 +505,10 @@
     (declare (salience 2)) ; a lo mejor hay que cambiar la saliencia
     ?x <-(moverFichaBlancas ?dado1 ?dado2 $?datos)
     (test (or(neq ?dado1 0)(neq ?dado2 0))) ; compruebo que no sean 0 los 2 dados
-    (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego $?fichas))
+    ?t<-(tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego $?fichas))
 =>
+    (printout t "Turno de las fichas blancas." crlf )
     (bind ?movimientosDisponibles (movimientosLegalesB ?dado1 ?dado2 ?fichas))
-    (printout t "Movimientos disponibles: " ?movimientosDisponibles crlf )
     (bind ?cantMov (length$ ?movimientosDisponibles))
     (imprimirMovimientos ?cantMov ?movimientosDisponibles)
     (printout t "Escoge un movimiento a realizar: " )
@@ -490,8 +520,12 @@
     (bind ?origen (nth$ (- ?i 2) ?movimientosDisponibles))
     (bind ?destino (nth$ (- ?i 1) ?movimientosDisponibles))
 
-    (printout t "Origen: " ?origen crlf )
-    (printout t "Destino: " ?destino crlf )
+
+    (bind ?fichas (moverFicha ?origen ?destino B $?fichas)) ;actualizo las fichas con el movimiento
+
+
+    (retract ?t) ;elimino el tablero anterior
+    (assert (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego ?fichas))) ;actualizo el tablero
 
     (if (and(eq (- ?destino ?origen) ?dado1)(neq ?dado2 0)) then
         (retract ?x) ;Quito el turno actual
@@ -512,11 +546,9 @@
         )
 
     )
+    (assert (imprimirTablero))
     (retract ?x) ;Quito el turno actual
 
 )
-
-
-
 
 
