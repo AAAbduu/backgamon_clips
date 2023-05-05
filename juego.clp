@@ -534,8 +534,24 @@
     (bind ?origen (nth$ (- ?i 2) ?movimientosDisponibles))
     (bind ?destino (nth$ (- ?i 1) ?movimientosDisponibles))
 
-    (bind ?fichas (moverFicha ?origen ?destino N $?fichas)) ;actualizo las fichas con el movimiento
+;;;;;;;;;;;;;,mover ficha;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    (bind ?queHayO (nth$ ?origen ?fichas))
+    (bind ?queHayD (nth$ ?destino ?fichas))
 
+    (printout t "antes de mover: " ?fichas crlf)
+    (if (eq ?queHayD 1) then ; hay una ficha blanca en el destino
+        (bind ?fichas (replace$ ?fichas ?destino ?destino 0))
+        ;add 1 to the counter of the tablero fact
+        (bind ?fichasCapturadasB (+ ?fichasCapturadasB 1))
+        (bind ?queHayD (nth$ ?destino ?fichas))
+
+    )
+    (bind ?fichas (replace$ ?fichas ?destino ?destino (- ?queHayD 1))); caso generico no como
+    (bind ?fichas (replace$ ?fichas ?origen ?origen (+ ?queHayO 1))); caso generico no como
+
+    (printout t "despues de mover: " ?fichas crlf)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     (retract ?t) ;elimino el tablero anterior
     (assert (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego $?fichas) (fichasCapturadasB ?fichasCapturadasB) 
     (fichasCapturadasN ?fichasCapturadasN) (casasB ?casasB) (casasN ?casasN))) ;actualizo el tablero
@@ -587,9 +603,26 @@
     (bind ?origen (nth$ (- ?i 2) ?movimientosDisponibles))
     (bind ?destino (nth$ (- ?i 1) ?movimientosDisponibles))
 
+;;;;;;;;;;;;;,mover ficha;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    (bind ?queHayO (nth$ ?origen ?fichas))
+    (bind ?queHayD (nth$ ?destino ?fichas))
 
-    (bind ?fichas (moverFicha ?origen ?destino B $?fichas)) ;actualizo las fichas con el movimiento
 
+    (if (eq ?queHayD -1) then ; hay una ficha negra en el destino
+        (bind ?fichas (replace$ ?fichas ?destino ?destino 0))
+        ;add 1 to the counter of the tablero fact
+        (bind ?fichasCapturadasN (+ ?fichasCapturadasN 1))
+        (bind ?queHayD (nth$ ?destino ?fichas))
+
+    )
+    (printout t "antes de mover: " ?fichas crlf)
+    (bind ?fichas (replace$ ?fichas ?destino ?destino (+ ?queHayD 1))); caso generico no como
+    (bind ?fichas (replace$ ?fichas ?origen ?origen (- ?queHayO 1))); caso generico no como
+
+    (printout t "despues de mover: " ?fichas crlf)
+
+
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
     (retract ?t) ;elimino el tablero anterior
     (assert (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego $?fichas) (fichasCapturadasB ?fichasCapturadasB) 
@@ -619,22 +652,7 @@
 
 )
 
-(defrule actualizarCapturas
-    (declare (salience 5)) ; a lo mejor hay que cambiar la saliencia
-    ?x <- (actualizarCapturas ?quienCaptura)
-    ?t<-(tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego $?fichas) (fichasCapturadasB ?fichasCapturadasB) 
-    (fichasCapturadasN ?fichasCapturadasN) (casasB ?casasB) (casasN ?casasN))
-=>
-    (if(eq ?quienCaptura B) then
-        (bind ?fichasCapturadasN (+ ?fichasCapturadasN 1))
-    else
-        (bind ?fichasCapturadasB (+ ?fichasCapturadasB 1))
-    )
-    (retract ?t) ;elimino el tablero anterior
-    (assert (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego $?fichas) (fichasCapturadasB ?fichasCapturadasB) 
-    (fichasCapturadasN ?fichasCapturadasN) (casasB ?casasB) (casasN ?casasN))) ;actualizo el tablero
-    (retract ?x) ;
-)
+
 
 
 
