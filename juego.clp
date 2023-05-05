@@ -17,6 +17,10 @@
     (slot turno (type INTEGER))
     (multislot jugadores (type INSTANCE) (allowed-classes jugador)(cardinality 2 2))
     (multislot juego (type INTEGER)(cardinality 24 24)) ;tendra el tablero, 24 posiciones, enteros negativo para las fichas negras y positivo para las blancas
+    (slot fichasCapturadasB (type INTEGER)(default 0))
+    (slot fichasCapturadasN (type INTEGER)(default 0)) 
+    (slot casasB (type INTEGER)(default 0))
+    (slot casasN (type INTEGER)(default 0))
 )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -134,14 +138,25 @@
     (bind ?queHayO (nth$ ?origen ?fichas))
     (bind ?queHayD (nth$ ?destino ?fichas))
 
-    (if (eq ?turno N) then ;hay que comprobar antes si come pieza 
+    (if (eq ?turno N) then ;hay que comprobar antes si come pieza   
         (printout t "antes de mover: " ?fichas crlf)
+        (if (eq ?queHayD 1) then ; hay una ficha blanca en el destino
+            (bind ?fichas (replace$ ?fichas ?destino ?destino 0))
+            ;add 1 to the counter of the tablero fact
+            (assert (actualizarCapturas N))
+        )
+
         (bind ?fichas (replace$ ?fichas ?destino ?destino (- ?queHayD 1))); caso generico no como
         (bind ?fichas (replace$ ?fichas ?origen ?origen (+ ?queHayO 1))); caso generico no como
 
         (printout t "despues de mover: " ?fichas crlf)
 
     else
+        (if (eq ?queHayD -1) then ; hay una ficha blanca en el destino
+            (bind ?fichas (replace$ ?fichas ?destino ?destino 0))
+            ;add 1 to the counter of the tablero fact
+            (assert (actualizarCapturas B))
+        )
         (printout t "antes de mover: " ?fichas crlf)
         (bind ?fichas (replace$ ?fichas ?destino ?destino (+ ?queHayD 1))); caso generico no como
         (bind ?fichas (replace$ ?fichas ?origen ?origen (- ?queHayO 1))); caso generico no como
@@ -151,7 +166,6 @@
     )
 
     (return ?fichas)
-
 )
 
 (deffunction asignarMovFichasN (?color ?tipo ?tipo2 ?dado1 ?dado2 ?fichas)
@@ -286,7 +300,8 @@
 
     ;crear tablero inicial
     (bind ?tablero (assert (tablero (id 1) (idPadre 0) (turno ?turno)
-     (jugadores ?j1 ?j2) (juego 2 0 0 0 0 -5 0 -3 0 0 0 5 -5 0 0 0 3 0 5 0 0 0 0 -2)))) ; desde la posicion 1
+     (jugadores ?j1 ?j2) (juego 2 0 0 0 0 -5 0 -3 0 0 0 5 -5 0 0 0 3 0 5 0 0 0 0 -2)
+     (fichasCapturadasB 0) (fichasCapturadasN 0) (casasB 0) (casasN 0)))) ; desde la posicion 1
     (assert (imprimirTablero))
     (if (eq ?turno N) then
         (assert (turnoNegras 0 0))
@@ -299,7 +314,8 @@
 (defrule imprimirTablero
     (declare (salience 3))
     ?x <-(imprimirTablero)
-    (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego $?fichas))
+    (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego $?fichas) (fichasCapturadasB ?fichasCapturadasB)
+    (fichasCapturadasN ?fichasCapturadasN) (casasB ?casasB) (casasN ?casasN))
 =>
 
     (printout t crlf )
@@ -387,7 +403,8 @@
 (defrule dobles
     (declare (salience 3))
     ?x <-(dobles ?turno ?dado1 ?dado2)
-    (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego $?fichas))
+    (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego $?fichas) (fichasCapturadasB ?fichasCapturadasB) 
+    (fichasCapturadasN ?fichasCapturadasN) (casasB ?casasB) (casasN ?casasN))
     ?j1 <- (jugador (tipo ?tipo) (color ?color))
     ?j2<-(jugador (tipo ?tipo2) (color ?color2))
 
@@ -410,7 +427,8 @@
 (defrule turnoNegras
     (declare (salience 1))
     ?x <-(turnoNegras ?dado1 ?dado2)
-    ?t <- (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego $?fichas))
+    ?t <- (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego $?fichas) (fichasCapturadasB ?fichasCapturadasB)
+    (fichasCapturadasN ?fichasCapturadasN) (casasB ?casasB) (casasN ?casasN))
     (test (eq ?turno N))
     ;get player with fichas "N"
     ?j1 <- (jugador (tipo ?tipo) (color ?color))
@@ -440,13 +458,15 @@
     (bind ?turnoN B)    
     (retract ?t)
     (retract ?x)
-    (assert(tablero (id ?id) (idPadre ?idPadre) (turno ?turnoN) (jugadores ?jugadores) (juego ?fichas)))
+    (assert(tablero (id ?id) (idPadre ?idPadre) (turno ?turnoN) (jugadores $?jugadores) (juego $?fichas) (fichasCapturadasB ?fichasCapturadasB) 
+    (fichasCapturadasN ?fichasCapturadasN) (casasB ?casasB) (casasN ?casasN)))
 )
 
 (defrule turnoBlancas
     (declare (salience 1))
     ?x <-(turnoBlancas ?dado1 ?dado2)
-    ?t <-(tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego $?fichas))
+    ?t <-(tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego $?fichas) (fichasCapturadasB ?fichasCapturadasB)
+     (fichasCapturadasN ?fichasCapturadasN) (casasB ?casasB) (casasN ?casasN))
     (test (eq ?turno B))
     ?j1 <- (jugador (tipo ?tipo) (color ?color))
     ?j2 <- (jugador (tipo ?tipo2) (color ?color2))
@@ -488,14 +508,16 @@
     (bind ?turnoN N)
     (retract ?t)
     (retract ?x)
-    (assert(tablero (id ?id) (idPadre ?idPadre) (turno ?turnoN) (jugadores ?jugadores) (juego ?fichas)))
+    (assert(tablero (id ?id) (idPadre ?idPadre) (turno ?turnoN) (jugadores $?jugadores) (juego $?fichas) (fichasCapturadasB ?fichasCapturadasB) 
+    (fichasCapturadasN ?fichasCapturadasN) (casasB ?casasB) (casasN ?casasN)))
     (assert (turnoNegras 0 0))
 )
 
 (defrule moverFichaNegras
     (declare (salience 2)) ; a lo mejor hay que cambiar la saliencia
     ?x <-(moverFichaNegras ?dado1 ?dado2 $?datos)
-    ?t <- (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego $?fichas))
+    ?t <- (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego $?fichas) (fichasCapturadasB ?fichasCapturadasB) 
+    (fichasCapturadasN ?fichasCapturadasN) (casasB ?casasB) (casasN ?casasN))
 =>
 
 
@@ -515,7 +537,8 @@
     (bind ?fichas (moverFicha ?origen ?destino N $?fichas)) ;actualizo las fichas con el movimiento
 
     (retract ?t) ;elimino el tablero anterior
-    (assert (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego ?fichas))) ;actualizo el tablero
+    (assert (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego $?fichas) (fichasCapturadasB ?fichasCapturadasB) 
+    (fichasCapturadasN ?fichasCapturadasN) (casasB ?casasB) (casasN ?casasN))) ;actualizo el tablero
 
 
 
@@ -548,7 +571,8 @@
     (declare (salience 2)) ; a lo mejor hay que cambiar la saliencia
     ?x <-(moverFichaBlancas ?dado1 ?dado2 $?datos)
     (test (or(neq ?dado1 0)(neq ?dado2 0))) ; compruebo que no sean 0 los 2 dados
-    ?t<-(tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego $?fichas))
+    ?t<-(tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego $?fichas) (fichasCapturadasB ?fichasCapturadasB) 
+    (fichasCapturadasN ?fichasCapturadasN) (casasB ?casasB) (casasN ?casasN))
 =>
     (printout t "Turno de las fichas blancas." crlf )
     (bind ?movimientosDisponibles (movimientosLegalesB ?dado1 ?dado2 ?fichas))
@@ -568,7 +592,8 @@
 
 
     (retract ?t) ;elimino el tablero anterior
-    (assert (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego ?fichas))) ;actualizo el tablero
+    (assert (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego $?fichas) (fichasCapturadasB ?fichasCapturadasB) 
+    (fichasCapturadasN ?fichasCapturadasN) (casasB ?casasB) (casasN ?casasN))) ;actualizo el tablero
 
     (if (and(eq (- ?destino ?origen) ?dado1)(neq ?dado2 0)) then
         (retract ?x) ;Quito el turno actual
@@ -593,5 +618,23 @@
     (retract ?x) ;Quito el turno actual
 
 )
+
+(defrule actualizarCapturas
+    (declare (salience 5)) ; a lo mejor hay que cambiar la saliencia
+    ?x <- (actualizarCapturas ?quienCaptura)
+    ?t<-(tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego $?fichas) (fichasCapturadasB ?fichasCapturadasB) 
+    (fichasCapturadasN ?fichasCapturadasN) (casasB ?casasB) (casasN ?casasN))
+=>
+    (if(eq ?quienCaptura B) then
+        (bind ?fichasCapturadasN (+ ?fichasCapturadasN 1))
+    else
+        (bind ?fichasCapturadasB (+ ?fichasCapturadasB 1))
+    )
+    (retract ?t) ;elimino el tablero anterior
+    (assert (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego $?fichas) (fichasCapturadasB ?fichasCapturadasB) 
+    (fichasCapturadasN ?fichasCapturadasN) (casasB ?casasB) (casasN ?casasN))) ;actualizo el tablero
+    (retract ?x) ;
+)
+
 
 
