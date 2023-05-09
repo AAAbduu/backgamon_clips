@@ -411,7 +411,7 @@
     (bind ?dobles 0) ;por defecto no hay dobles
     (retract ?x)
     (if (and(eq ?dado1 0)(eq ?dado2 0)) then
-        (bind ?dado1 (random 1 6))
+        (bind ?dado1 (random 1 6)) ;(random 1 6)
         (bind ?dado2 (random 1 6))  ;tiro los dados
 
         (printout t "Dado 1: " ?dado1 crlf )
@@ -458,7 +458,7 @@
     (retract ?x) ;quito el turno ya
     (if (and(eq ?dado1 0)(eq ?dado2 0)) then
         (bind ?dado1 (random 1 6))
-        (bind ?dado2 (random 1 6))  ;tiro los dados
+        (bind ?dado2 (random 1 6)) 
 
         (printout t "Dado 1: " ?dado1 crlf )
         (printout t "Dado 2: " ?dado2 crlf )
@@ -492,18 +492,20 @@
     (fichasCapturadasN ?fichasCapturadasN) (casasB ?casasB) (casasN ?casasN))
 =>
     (bind ?dobles 0); por defecto no hay dobles
-    (if (eq (* ?dado1 4) ?dado22) then
+    (if (> ?dado22 0) then
         (bind ?dobles 1)    ;hay dobles
     )
 
     (bind ?dados (create$ ?dado1 ?dado2 ?dado11 ?dado22)); meto todos las combinaciones de movimientos
+
+    (bind ?todasEnCasaN (comprobarCasaN ?casasN ?fichas)) ;compruebo si todas las fichas estan en casa
 
     (bind ?movimientos (create$))
 
     (loop-for-count (?i (length$ ?dados))
         (bind ?dado (nth$ ?i ?dados))
         (if (> ?dado 0) then
-            (bind ?movimientosDisponibles (movimientosLegalesN ?dado ?fichasCapturadasN ?casasN ?fichas))
+            (bind ?movimientosDisponibles (movimientosLegalesN ?dado ?fichasCapturadasN ?todasEnCasaN ?fichas))
             ;insert into movimientos
             (bind ?movimientos (create$ ?movimientos ?movimientosDisponibles))
         )
@@ -520,7 +522,6 @@
     
 
         (printout t "Turno de las fichas negras." crlf )
-        (bind ?todasEnCasaN (comprobarCasaN ?casasN ?fichas))
     
         (imprimirMovimientos ?cantMov ?movimientos)
         (printout t "Escoge un movimiento a realizar: " )
@@ -661,18 +662,20 @@
     (fichasCapturadasN ?fichasCapturadasN) (casasB ?casasB) (casasN ?casasN))
 =>
     (bind ?dobles 0); por defecto no hay dobles
-    (if (eq (* ?dado1 4) ?dado22) then
+    (if (> ?dado22 0) then
         (bind ?dobles 1)    ;hay dobles
     )
 
     (bind ?dados (create$ ?dado1 ?dado2 ?dado11 ?dado22)); meto todos las combinaciones de movimientos
+
+    (bind ?todasEnCasaB (comprobarCasaB ?casasB ?fichas)) ;compruebo si todas las fichas estan en casa
 
     (bind ?movimientos (create$))
 
     (loop-for-count (?i (length$ ?dados))
         (bind ?dado (nth$ ?i ?dados))
         (if (> ?dado 0) then
-            (bind ?movimientosDisponibles (movimientosLegalesB ?dado ?fichasCapturadasB ?casasB ?fichas))
+            (bind ?movimientosDisponibles (movimientosLegalesB ?dado ?fichasCapturadasB ?todasEnCasaB ?fichas))
             ;insert into movimientos
             (bind ?movimientos (create$ ?movimientos ?movimientosDisponibles))
         )
@@ -689,7 +692,6 @@
     (bind ?cantMov (length$ ?movimientos))
     (if (> ?cantMov 0) then
         (printout t "Turno de las fichas blancas." crlf )
-        (bind ?todasEnCasaB (comprobarCasaB ?casasB ?fichas))
 
         (imprimirMovimientos ?cantMov ?movimientos)
         (printout t "Escoge un movimiento a realizar: " )
