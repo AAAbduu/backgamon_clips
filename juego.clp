@@ -27,7 +27,7 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;FUNCIONES;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(deffunction movimientosLegalesB (?dado1 ?dado2 ?fichasCapturadasB ?todasEnCasaB $?fichas) ;COMPLETAR CUANDO TIENES FICHAS CAPTURADAS
+(deffunction movimientosLegalesB (?dado1 ?fichasCapturadasB ?todasEnCasaB $?fichas) ;COMPLETAR CUANDO TIENES FICHAS CAPTURADAS
     (bind ?movimientos (create$))
     (bind ?nMovimiento (create$))
 
@@ -41,25 +41,7 @@
                     
             (bind ?movimientos (create$ ?movimientos ?nMovimiento))
         )
-        (if (and (neq ?dado2 0)(> (nth$ ?dado2 ?fichas) -2)) then ; si puedo mover la ficha capturada con el dado 2
-            (bind ?nMovimiento  (create$ 0 ?dado2) 1) ;origen, destino, tipo
-            (if (eq (nth$ ?dado2 ?fichas) -1) then ;Si hay una ficha negra en la posicion a la que me muevo
-                (bind ?nMovimiento (create$ 0 ?dado2) 2) ;origen, destino, tipo: como pieza
-            )
-                    
-            (bind ?movimientos (create$ ?movimientos ?nMovimiento))
-        )
-        (bind ?sumaDados (+ ?dado1 ?dado2))
-        (if (and (neq ?dado1 0) (neq ?dado2 0)) then
-            (if (> (nth$ ?sumaDados ?fichas) -2) then ; si puedo mover la ficha capturada con la suma de los dados
-                (bind ?nMovimiento  (create$ 0 ?sumaDados) 1) ;origen, destino, tipo
-                (if (eq (nth$ ?sumaDados ?fichas) -1) then ;Si hay una ficha negra en la posicion a la que me muevo
-                    (bind ?nMovimiento (create$ 0 ?sumaDados) 2) ;origen, destino, tipo: como pieza
-                )
-                    
-                (bind ?movimientos (create$ ?movimientos ?nMovimiento))
-            )
-        )
+
         (return ?movimientos)
     )
 
@@ -83,42 +65,13 @@
                         (bind ?movimientos (create$ ?movimientos ?nMovimiento))
                     )
                 )
-                (if (and(and(and (< (+ ?i ?dado2) 25) (> (nth$ (+ ?i ?dado2) ?fichas) -2))(neq ?dado1 ?dado2))(neq ?dado2 0)) then ;Si puedo mover la ficha i con el dado 2
-                    (bind ?nMovimiento (create$ ?i (+ ?i ?dado2)) 1)
-                    (if (eq (nth$ (+ ?i ?dado2) ?fichas) -1) then ;Si hay una ficha negra en la posicion a la que me muevo
-                        (bind ?nMovimiento (create$ ?i (+ ?i ?dado2)) 2)
-                    )
-
-                    (bind ?movimientos (create$ ?movimientos ?nMovimiento))
-                else
-                    (if (and(eq (+ ?i ?dado2) 25)(eq ?todasEnCasaB 1)) then ;Si me muevo a la casa
-                        (bind ?nMovimiento (create$ ?i 25) 3) ;origen, destino, tipo: como casa
-                        (bind ?movimientos (create$ ?movimientos ?nMovimiento))
-                    )        
-                )
-                (bind ?sumaDadosi (+(+ ?i ?dado2)?dado1))
-                (if (and (neq ?dado1 0) (neq ?dado2 0)) then
-                    (if (and (< ?sumaDadosi 25) (> (nth$ ?sumaDadosi ?fichas) -2)) then ;Si puedo mover la ficha i con la suma de los dados
-                        (bind ?nMovimiento (create$ ?i ?sumaDadosi) 1)
-                        (if (eq (nth$ ?sumaDadosi ?fichas) -1) then ;Si hay una ficha negra en la posicion a la que me muevo
-                            (bind ?nMovimiento (create$ ?i ?sumaDadosi) 2)
-                        )
-
-                        (bind ?movimientos (create$ ?movimientos ?nMovimiento))
-                    else
-                        (if (and(eq ?sumaDadosi 25)(eq ?todasEnCasaB 1)) then ;Si me muevo a la casa
-                            (bind ?nMovimiento (create$ ?i 25) 3) ;origen, destino, tipo: como casa
-                            (bind ?movimientos (create$ ?movimientos ?nMovimiento))
-                        )        
-                    )       
-                )
             )
         )
     )    
     (return ?movimientos)
 )
 
-(deffunction movimientosLegalesN (?dado1 ?dado2 ?fichasCapturadasN ?todasEnCasaN $?fichas) ;COMPLETAR CUANDO TIENES FICHAS CAPTURADAS
+(deffunction movimientosLegalesN (?dado1 ?fichasCapturadasN ?todasEnCasaN $?fichas) ;COMPLETAR CUANDO TIENES FICHAS CAPTURADAS
     (bind ?movimientos (create$))
     (bind ?nMovimiento (create$))
 
@@ -131,24 +84,6 @@
             )
                     
             (bind ?movimientos (create$ ?movimientos ?nMovimiento))
-        )
-        (if (and(neq ?dado2 0)(and(< (nth$ (- 25 ?dado2) ?fichas) 2)(neq ?dado1 ?dado2))) then
-            (bind ?nMovimiento  (create$ 25 (- 25 ?dado2)) 1) ;origen, destino, tipo
-            (if (eq (nth$ (- 25 ?dado2) ?fichas) 1) then ;Si hay una ficha blanca en la posicion a la que me muevo
-                (bind ?nMovimiento (create$ 25 (- 25 ?dado2)) 2) ;origen, destino, tipo: como pieza
-            )
-                    
-            (bind ?movimientos (create$ ?movimientos ?nMovimiento))            
-        )
-        (bind ?sumaDados (- (- 25 ?dado2) ?dado1))
-        (if (and (neq ?dado1 0) (neq ?dado2 0)) then
-            (if (< (nth$ ?sumaDados ?fichas) 2) then
-                    (bind ?nMovimiento (create$ 25 ?sumaDados) 1)
-                    (if (eq (nth$ ?sumaDados ?fichas) 1) then ;Si hay una ficha blanca en la posicion a la que me muevo
-                        (bind ?nMovimiento (create$ 25 ?sumaDados) 2)
-                    )
-                    (bind ?movimientos (create$ ?movimientos ?nMovimiento))            
-            )
         )
         (return ?movimientos)
     )
@@ -172,35 +107,6 @@
                     (if (and (eq (- ?i ?dado1) 0)(eq ?todasEnCasaN 1)) then ;Si me muevo a la casa
                         (bind ?nMovimiento (create$ ?i 0) 3) ;origen, destino, tipo: como casa
                         (bind ?movimientos (create$ ?movimientos ?nMovimiento))
-                    )
-                )
-                (if (and(and (and (> (- ?i ?dado2) 0) (< (nth$ (- ?i ?dado2) ?fichas) 2))(neq ?dado1 ?dado2))(neq ?dado2 0)) then ;Si puedo mover la ficha i con el dado 2
-                    (bind ?nMovimiento (create$ ?i (- ?i ?dado2)) 1)
-                    (if (eq (nth$ (- ?i ?dado2) ?fichas) 1) then ;Si hay una ficha blanca en la posicion a la que me muevo
-                        (bind ?nMovimiento (create$ ?i (- ?i ?dado2)) 2)
-                    )
-
-                    (bind ?movimientos (create$ ?movimientos ?nMovimiento))
-
-                else
-                    (if (and (eq (- ?i ?dado2) 0)(eq ?todasEnCasaN 1)) then ;Si me muevo a la casa
-                        (bind ?nMovimiento (create$ ?i 0) 3) ;origen, destino, tipo: como casa
-                        (bind ?movimientos (create$ ?movimientos ?nMovimiento))
-                    )
-                )
-                (bind ?sumaDadosi (-(- ?i ?dado2)?dado1))
-                (if (and (neq ?dado1 0) (neq ?dado2 0)) then
-                    (if (and (> ?sumaDadosi 0) (< (nth$ ?sumaDadosi ?fichas) 2)) then ;Si puedo mover la ficha i con la suma de los dados
-                        (bind ?nMovimiento (create$ ?i ?sumaDadosi) 1)
-                        (if (eq (nth$ ?sumaDadosi ?fichas) 1) then ;Si hay una ficha blanca en la posicion a la que me muevo
-                            (bind ?nMovimiento (create$ ?i ?sumaDadosi) 2)
-                        )
-                        (bind ?movimientos (create$ ?movimientos ?nMovimiento))
-                    else
-                        (if (and (eq ?sumaDadosi 0)(eq ?todasEnCasaN 1)) then ;Si me muevo a la casa
-                            (bind ?nMovimiento (create$ ?i 0) 3) ;origen, destino, tipo: como casa
-                            (bind ?movimientos (create$ ?movimientos ?nMovimiento))
-                        )
                     )
                 )
             )
@@ -257,36 +163,36 @@
     )
 )
 
-(deffunction asignarMovFichasN (?color ?tipo ?tipo2 ?dado1 ?dado2 ?fichas)
+(deffunction asignarMovFichasN (?color ?tipo ?tipo2 ?dado1 ?dado2  ?dado11 ?dado22 ?fichas)
     (if (eq ?color N)
     then
         (if (eq ?tipo 1) then
-            (assert (moverFichaNegras ?dado1 ?dado2 ?fichas)) ;mueve fichas blancas humano
+            (assert (moverFichaNegras ?dado1 ?dado2 ?dado11 ?dado22 ?fichas)) ;mueve fichas blancas humano
         else
-            (assert (moverFichaNegrasPC ?dado1 ?dado2 ?fichas))   ;mueve fichas blancas IA
+            (assert (moverFichaNegrasPC ?dado1 ?dado2 ?dado11 ?dado22 ?fichas))   ;mueve fichas blancas IA
         )
     else
         (if (eq ?tipo2 1) then
-            (assert (moverFichaNegras ?dado1 ?dado2 ?fichas)) ;mueve fichas blancas humano
+            (assert (moverFichaNegras ?dado1 ?dado2 ?dado11 ?dado22 ?fichas)) ;mueve fichas blancas humano
         else
-            (assert (moverFichaNegrasPC ?dado1 ?dado2 ?fichas))   ;mueve fichas blancas IA
+            (assert (moverFichaNegrasPC ?dado1 ?dado2 ?dado11 ?dado22 ?fichas))   ;mueve fichas blancas IA
         )
     )
 )
 
-(deffunction asignarMovFichasB (?color ?tipo ?tipo2 ?dado1 ?dado2 ?fichas)
+(deffunction asignarMovFichasB (?color ?tipo ?tipo2 ?dado1 ?dado2 ?dado11 ?dado22 ?fichas)
     (if (eq ?color B)
     then
         (if (eq ?tipo 1) then
-            (assert (moverFichaBlancas ?dado1 ?dado2 ?fichas)) ;mueve fichas blancas humano
+            (assert (moverFichaBlancas ?dado1 ?dado2 ?dado11 ?dado22 ?fichas)) ;mueve fichas blancas humano
         else
-            (assert (moverFichaBlancasPC ?dado1 ?dado2 ?fichas))   ;mueve fichas blancas IA
+            (assert (moverFichaBlancasPC ?dado1 ?dado2 ?dado11 ?dado22 ?fichas))   ;mueve fichas blancas IA
         )
     else
         (if (eq ?tipo2 1) then
-            (assert (moverFichaBlancas ?dado1 ?dado2 ?fichas)) ;mueve fichas blancas humano
+            (assert (moverFichaBlancas ?dado1 ?dado2 ?dado11 ?dado22 ?fichas)) ;mueve fichas blancas humano
         else
-            (assert (moverFichaBlancasPC ?dado1 ?dado2 ?fichas))   ;mueve fichas blancas IA
+            (assert (moverFichaBlancasPC ?dado1 ?dado2 ?dado11 ?dado22 ?fichas))   ;mueve fichas blancas IA
         )
     )
 )
@@ -489,30 +395,6 @@
 
 )
 
-(defrule dobles
-    (declare (salience 3))
-    ?x <-(dobles ?turno ?dado1 ?dado2)
-    (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego $?fichas) (fichasCapturadasB ?fichasCapturadasB) 
-    (fichasCapturadasN ?fichasCapturadasN) (casasB ?casasB) (casasN ?casasN))
-    ?j1 <- (jugador (tipo ?tipo) (color ?color))
-    ?j2<-(jugador (tipo ?tipo2) (color ?color2))
-
-    (test (neq ?j1 ?j2))
-
-
-
-=>
-    (if (and(eq ?dado1 ?dado2)(eq ?turno B)) then
-        (asignarMovFichasB B ?tipo ?tipo2 ?dado1 ?dado2 ?fichas)
-    else
-        (if (and(eq ?dado1 ?dado2)(eq ?turno N)) then
-        (asignarMovFichasN N ?tipo ?tipo2 ?dado1 ?dado2 ?fichas)
-        )
-    )
-
-    (retract ?x)
-)
-
 (defrule turnoNegras
     (declare (salience 1))
     ?x <-(turnoNegras ?dado1 ?dado2)
@@ -526,6 +408,7 @@
     (test (neq ?j1 ?j2))
 
 =>
+    (bind ?dobles 0) ;por defecto no hay dobles
     (retract ?x)
     (if (and(eq ?dado1 0)(eq ?dado2 0)) then
         (bind ?dado1 (random 1 6))
@@ -537,18 +420,26 @@
         (if (eq ?dado1 ?dado2) then
 
             (printout t "Dobles! " crlf )
-            (assert (dobles N ?dado1 ?dado2))
+            ;(assert (dobles N ?dado1 ?dado2))
+            (bind ?dobles 1); flag para saber si hay dobles
 
         )   
     )
 
-    (asignarMovFichasN ?color ?tipo ?tipo2 ?dado1 ?dado2 ?fichas)
+    (if (eq ?dobles 1) then
+        (asignarMovFichasN ?color ?tipo ?tipo2 ?dado1 (* 2 ?dado1) (* 3 ?dado1) (* 4 ?dado1) ?fichas)
+
+    else
+        (asignarMovFichasN ?color ?tipo ?tipo2 ?dado1 ?dado2 (+ ?dado1 ?dado2) 0 ?fichas)
+    )
 
     (bind ?turnoN B)    
     (retract ?t)
     (retract ?x)
     (assert(tablero (id ?id) (idPadre ?idPadre) (turno ?turnoN) (jugadores $?jugadores) (juego $?fichas) (fichasCapturadasB ?fichasCapturadasB) 
     (fichasCapturadasN ?fichasCapturadasN) (casasB ?casasB) (casasN ?casasN)))
+    (assert (turnoBlancas 0 0))
+
 )
 
 (defrule turnoBlancas
@@ -563,6 +454,7 @@
 
 
 =>
+    (bind ?dobles 0)
     (retract ?x) ;quito el turno ya
     (if (and(eq ?dado1 0)(eq ?dado2 0)) then
         (bind ?dado1 (random 1 6))
@@ -573,25 +465,16 @@
 
         (if (eq ?dado1 ?dado2) then
             (printout t "Dobles! " crlf )
-            (assert (dobles B ?dado1 ?dado2))
+            (bind ?dobles 1); flag para saber si hay dobles
     )
     )
 
     ;check if jugador blancas is human
+    (if (eq ?dobles 1) then
+        (asignarMovFichasB ?color ?tipo ?tipo2 ?dado1 (* 2 ?dado1) (* 3 ?dado1) (* 4 ?dado1) ?fichas)
 
-    (if (eq ?color B)
-    then
-        (if (eq ?tipo 1) then
-            (assert (moverFichaBlancas ?dado1 ?dado2 ?fichas)) ;mueve fichas blancas humano
-        else
-            (assert (moverFichaBlancasPC ?dado1 ?dado2 ?fichas))   ;mueve fichas blancas IA
-        )
     else
-        (if (eq ?tipo2 1) then
-            (assert (moverFichaBlancas ?dado1 ?dado2 ?fichas)) ;mueve fichas blancas humano
-        else
-            (assert (moverFichaBlancasPC ?dado1 ?dado2 ?fichas))   ;mueve fichas blancas IA
-        )
+        (asignarMovFichasB ?color ?tipo ?tipo2 ?dado1 ?dado2 (+ ?dado1 ?dado2) 0 ?fichas)
     )
 
     (bind ?turnoN N)
@@ -604,32 +487,50 @@
 
 (defrule moverFichaNegras
     (declare (salience 2)) ; a lo mejor hay que cambiar la saliencia
-    ?x <-(moverFichaNegras ?dado1 ?dado2 $?datos)
+    ?x <-(moverFichaNegras ?dado1 ?dado2 ?dado11 ?dado22 $?datos)
     ?t <- (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego $?fichas) (fichasCapturadasB ?fichasCapturadasB) 
     (fichasCapturadasN ?fichasCapturadasN) (casasB ?casasB) (casasN ?casasN))
 =>
+    (bind ?dobles 0); por defecto no hay dobles
+    (if (eq (* ?dado1 4) ?dado22) then
+        (bind ?dobles 1)    ;hay dobles
+    )
 
+    (bind ?dados (create$ ?dado1 ?dado2 ?dado11 ?dado22)); meto todos las combinaciones de movimientos
 
-    (printout t "Turno de las fichas negras." crlf )
-    (bind ?todasEnCasaN (comprobarCasaN ?casasN ?fichas))
-    (bind ?movimientosDisponibles (movimientosLegalesN ?dado1 ?dado2 ?fichasCapturadasN ?todasEnCasaN ?fichas))
-    (if (eq (length$ ?movimientosDisponibles) 0) then ; si no hay movimientos disponibles
+    (bind ?movimientos (create$))
+
+    (loop-for-count (?i (length$ ?dados))
+        (bind ?dado (nth$ ?i ?dados))
+        (if (> ?dado 0) then
+            (bind ?movimientosDisponibles (movimientosLegalesN ?dado ?fichasCapturadasN ?casasN ?fichas))
+            ;insert into movimientos
+            (bind ?movimientos (create$ ?movimientos ?movimientosDisponibles))
+        )
+
+    )
+
+    (if (eq (length$ ?movimientos) 0) then ; si no hay movimientos disponibles
         (printout t "No hay movimientos disponibles." crlf )
     )
 
-    (bind ?cantMov (length$ ?movimientosDisponibles))
+
+    (bind ?cantMov (length$ ?movimientos))
     (if (> ?cantMov 0) then
     
+
+        (printout t "Turno de las fichas negras." crlf )
+        (bind ?todasEnCasaN (comprobarCasaN ?casasN ?fichas))
     
-        (imprimirMovimientos ?cantMov ?movimientosDisponibles)
+        (imprimirMovimientos ?cantMov ?movimientos)
         (printout t "Escoge un movimiento a realizar: " )
         (bind ?movimiento (read))
         ;;;;Mover ficha aqui y actualizar el tablero
 
         (bind ?i (* ?movimiento 3))
 
-        (bind ?origen (nth$ (- ?i 2) ?movimientosDisponibles))
-        (bind ?destino (nth$ (- ?i 1) ?movimientosDisponibles))
+        (bind ?origen (nth$ (- ?i 2) ?movimientos))
+        (bind ?destino (nth$ (- ?i 1) ?movimientos))
 
     ;;;;;;;;;;;;;,mover ficha;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         (if (neq ?origen 25) then ; si no es una ficha capturada
@@ -661,67 +562,144 @@
 
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-        (retract ?t) ;elimino el tablero anterior
-        (assert (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego $?fichas) (fichasCapturadasB ?fichasCapturadasB) 
-        (fichasCapturadasN ?fichasCapturadasN) (casasB ?casasB) (casasN ?casasN))) ;actualizo el tablero
+        
+        (bind ?movRealizado (- ?origen ?destino)) ;cantidad de casillas que he movido
 
+        (if (eq ?movRealizado ?dado11) then
+            (bind ?dados (replace$ ?dados 3 3 0)) ;elimino la posibilidad de dado 3
+            (bind ?dados (replace$ ?dados 1 1 0)) ;elimino la posibilidad de dado 1
+            (bind ?dados (replace$ ?dados 2 2 0)) ;elimino la posibilidad de dado 2
+            (if (<= (- ?dado22 ?dado11) 0) then
+                (bind ?dados (replace$ ?dados 4 4 0)) ;elimino la posibilidad de dado 4
 
-
-        (if (and(eq (- ?origen ?destino) ?dado1)(neq ?dado2 0)) then
-            (retract ?x) ;Quito el turno actual
-            (printout t "Aún falta el movimiento con el dado 2!" crlf )
-            (assert (moverFichaNegras 0 ?dado2 ?fichas))
-        else
-            (if (and(eq (- ?origen ?destino) ?dado2)(neq ?dado1 0)) then
-                (retract ?x) ;Quito el turno actual
-                (printout t "Aún falta el movimiento con el dado 1!" crlf )
-                (assert (moverFichaNegras ?dado1 0 ?fichas))
             else
-                (if (eq (- ?origen ?destino) (+ ?dado1 ?dado2))
-                    then
-                        (retract ?x) ;Quito el turno actual
-                        (printout t "Movimiento realizado!" crlf )
+                (bind ?dados (replace$ ?dados 4 4 (- ?dado22 ?dado11 ))) ;resto al dado 4 el dado3
+            )
+        else (if (eq ?movRealizado ?dado22) then
+                (bind ?dados (replace$ ?dados 1 1 0)) ;elimino la posibilidad de dado 1
+                (bind ?dados (replace$ ?dados 2 2 0)) ;elimino la posibilidad de dado 2
+                (bind ?dados (replace$ ?dados 3 3 0)) ;elimino la posibilidad de dado 2
+                (bind ?dados (replace$ ?dados 4 4 0)) ;elimino la posibilidad de dado 4
+            )
+        )
 
+        (if (and(eq ?dobles 1) (eq ?movRealizado ?dado1)) then;si hay dobles y uso dado1
+            (bind ?dados (replace$ ?dados 1 1 0))
+            (bind ?dados (replace$ ?dados 2 2 (- ?dado2 ?dado1)))
+            (bind ?dados (replace$ ?dados 3 3 (- ?dado11 ?dado1)))
+            (bind ?dados (replace$ ?dados 4 4 (- ?dado22 ?dado1)))
+
+        else (if (and(eq ?dobles 1) (eq ?movRealizado ?dado2)) then
+                (bind ?dados (replace$ ?dados 1 1 0))
+                (bind ?dados (replace$ ?dados 2 2 0))
+                (bind ?dados (replace$ ?dados 3 3 (- ?dado11 ?dado2)))
+                (bind ?dados (replace$ ?dados 4 4 (- ?dado22 ?dado2)))
                 )
             )
 
-        )
+        (if (and(eq ?dobles 0)(eq ?movRealizado ?dado1)) then
+            (bind ?dados (replace$ ?dados 1 1 0))
+            (bind ?dados (replace$ ?dados 3 3 0))
+        else (if (and(eq ?dobles 0)(eq ?movRealizado ?dado2)) then
+                (bind ?dados (replace$ ?dados 2 2 0))
+                (bind ?dados (replace$ ?dados 3 3 0))
+                )
+            )
+        (retract ?t) ;elimino el tablero anterior
+        (assert (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego $?fichas) (fichasCapturadasB ?fichasCapturadasB) 
+        (fichasCapturadasN ?fichasCapturadasN) (casasB ?casasB) (casasN ?casasN))) ;actualizo el tablero
     )
+
+    (bind ?dado1 (nth$ 1 ?dados))
+    (if (<= ?dado1 0)
+        then
+        (bind ?dado1 0)
+    )
+    (bind ?dado2 (nth$ 2 ?dados))
+    (if (<= ?dado2 0)
+        then
+        (bind ?dado2 0)
+    )
+    (bind ?dado11 (nth$ 3 ?dados))
+    (if (<= ?dado11 0)
+        then
+        (bind ?dado11 0)
+    )
+    (bind ?dado22 (nth$ 4 ?dados))
+    (if (<= ?dado22 0)
+        then
+        (bind ?dado22 0)
+    )
+
+        (if (and (and (and (eq ?dado1 0)  (eq ?dado2 0)) (eq ?dado11 0))  (eq ?dado22 0)) then ; si no quedan dados
+            (printout t "Turno realizado!" crlf )
+        
+            else
+
+            (assert (moverFichaNegras ?dado1 ?dado2 ?dado11 ?dado22 ?fichas))
+
+        )
+        
+
+    (retract ?t) ;elimino el tablero anterior
+    (assert (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego $?fichas) (fichasCapturadasB ?fichasCapturadasB) 
+    (fichasCapturadasN ?fichasCapturadasN) (casasB ?casasB) (casasN ?casasN))) ;actualizo el tablero
     (assert (imprimirTablero))
     (retract ?x) ;Quito el turno actual
     (if (eq ?casasN 15) then ; Todas las fichas negras en casa
         (printout t "Ganan las fichas negras!" crlf )
         (halt)
     )
-    (assert (turnoBlancas 0 0))
 
 )
 
 (defrule moverFichaBlancas
     (declare (salience 2)) ; a lo mejor hay que cambiar la saliencia
-    ?x <-(moverFichaBlancas ?dado1 ?dado2 $?datos)
+    ?x <-(moverFichaBlancas ?dado1 ?dado2 ?dado11 ?dado22 $?datos)
     (test (or(neq ?dado1 0)(neq ?dado2 0))) ; compruebo que no sean 0 los 2 dados
     ?t<-(tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego $?fichas) (fichasCapturadasB ?fichasCapturadasB) 
     (fichasCapturadasN ?fichasCapturadasN) (casasB ?casasB) (casasN ?casasN))
 =>
-    (printout t "Turno de las fichas blancas." crlf )
-    (bind ?todasEnCasaB (comprobarCasaB ?casasB ?fichas))
-    (bind ?movimientosDisponibles (movimientosLegalesB ?dado1 ?dado2 ?fichasCapturadasB ?todasEnCasaB ?fichas))
-    (if (eq (length$ ?movimientosDisponibles) 0) then
+    (bind ?dobles 0); por defecto no hay dobles
+    (if (eq (* ?dado1 4) ?dado22) then
+        (bind ?dobles 1)    ;hay dobles
+    )
+
+    (bind ?dados (create$ ?dado1 ?dado2 ?dado11 ?dado22)); meto todos las combinaciones de movimientos
+
+    (bind ?movimientos (create$))
+
+    (loop-for-count (?i (length$ ?dados))
+        (bind ?dado (nth$ ?i ?dados))
+        (if (> ?dado 0) then
+            (bind ?movimientosDisponibles (movimientosLegalesB ?dado ?fichasCapturadasB ?casasB ?fichas))
+            ;insert into movimientos
+            (bind ?movimientos (create$ ?movimientos ?movimientosDisponibles))
+        )
+
+    )
+
+    (if (eq (length$ ?movimientos) 0) then
         (printout t "No hay movimientos disponibles." crlf )
     )
+
+
     
-    (bind ?cantMov (length$ ?movimientosDisponibles))
+    
+    (bind ?cantMov (length$ ?movimientos))
     (if (> ?cantMov 0) then
-        (imprimirMovimientos ?cantMov ?movimientosDisponibles)
+        (printout t "Turno de las fichas blancas." crlf )
+        (bind ?todasEnCasaB (comprobarCasaB ?casasB ?fichas))
+
+        (imprimirMovimientos ?cantMov ?movimientos)
         (printout t "Escoge un movimiento a realizar: " )
         (bind ?movimiento (read))
         ;;;;Mover ficha aqui y actualizar el tablero
 
         (bind ?i (* ?movimiento 3))
 
-        (bind ?origen (nth$ (- ?i 2) ?movimientosDisponibles))
-        (bind ?destino (nth$ (- ?i 1) ?movimientosDisponibles))
+        (bind ?origen (nth$ (- ?i 2) ?movimientos))
+        (bind ?destino (nth$ (- ?i 1) ?movimientos))
 
     ;;;;;;;;;;;;;,mover ficha;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         (if (neq ?origen 0) then ; si no es una ficha capturada
@@ -751,38 +729,93 @@
         )
         
         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+        (bind ?movRealizado (- ?destino ?origen)) ;cantidad de casillas que he movido
 
-        (retract ?t) ;elimino el tablero anterior
-        (assert (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego $?fichas) (fichasCapturadasB ?fichasCapturadasB) 
-        (fichasCapturadasN ?fichasCapturadasN) (casasB ?casasB) (casasN ?casasN))) ;actualizo el tablero
+        (if (eq ?movRealizado ?dado11) then
+            (bind ?dados (replace$ ?dados 3 3 0)) ;elimino la posibilidad de dado 3
+            (bind ?dados (replace$ ?dados 1 1 0)) ;elimino la posibilidad de dado 1
+            (bind ?dados (replace$ ?dados 2 2 0)) ;elimino la posibilidad de dado 2
+            (if (<= (- ?dado22 ?dado11) 0) then
+                (bind ?dados (replace$ ?dados 4 4 0)) ;elimino la posibilidad de dado 4
 
-        (if (and(eq (- ?destino ?origen) ?dado1)(neq ?dado2 0)) then
-            (retract ?x) ;Quito el turno actual
-            (printout t "Aún falta el movimiento con el dado 2!" crlf )
-            (assert (moverFichaBlancas 0 ?dado2 ?fichas))
-        else
-            (if (and(eq (- ?destino ?origen) ?dado2)(neq ?dado1 0)) then
-                (retract ?x) ;Quito el turno actual
-                (printout t "Aún falta el movimiento con el dado 1!" crlf )
-                (assert (moverFichaBlancas ?dado1 0 ?fichas))
             else
-                (if (eq (- ?destino ?origen) (+ ?dado1 ?dado2))
-                    then
-                        (retract ?x) ;Quito el turno actual
-                        (printout t "Movimiento realizado!" crlf )
+                (bind ?dados (replace$ ?dados 4 4 (- ?dado22 ?dado11 ))) ;resto al dado 4 el dado3
+            )
+        else (if (eq ?movRealizado ?dado22) then
+                (bind ?dados (replace$ ?dados 1 1 0)) ;elimino la posibilidad de dado 1
+                (bind ?dados (replace$ ?dados 2 2 0)) ;elimino la posibilidad de dado 2
+                (bind ?dados (replace$ ?dados 3 3 0)) ;elimino la posibilidad de dado 2
+                (bind ?dados (replace$ ?dados 4 4 0)) ;elimino la posibilidad de dado 4
+            )
+        )
 
+        (if (and(eq ?dobles 1) (eq ?movRealizado ?dado1)) then;si hay dobles y uso dado1
+            (bind ?dados (replace$ ?dados 1 1 0))
+            (bind ?dados (replace$ ?dados 2 2 (- ?dado2 ?dado1)))
+            (bind ?dados (replace$ ?dados 3 3 (- ?dado11 ?dado1)))
+            (bind ?dados (replace$ ?dados 4 4 (- ?dado22 ?dado1)))
+
+        else (if (and(eq ?dobles 1) (eq ?movRealizado ?dado2)) then
+                (bind ?dados (replace$ ?dados 1 1 0))
+                (bind ?dados (replace$ ?dados 2 2 0))
+                (bind ?dados (replace$ ?dados 3 3 (- ?dado11 ?dado2)))
+                (bind ?dados (replace$ ?dados 4 4 (- ?dado22 ?dado2)))
                 )
             )
 
-        )
+        (if (and(eq ?dobles 0)(eq ?movRealizado ?dado1)) then
+            (bind ?dados (replace$ ?dados 1 1 0))
+            (bind ?dados (replace$ ?dados 3 3 0))
+        else (if (and(eq ?dobles 0)(eq ?movRealizado ?dado2)) then
+                (bind ?dados (replace$ ?dados 2 2 0))
+                (bind ?dados (replace$ ?dados 3 3 0))
+                )
+            )
+        (retract ?t) ;elimino el tablero anterior
+        (assert (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego $?fichas) (fichasCapturadasB ?fichasCapturadasB) 
+        (fichasCapturadasN ?fichasCapturadasN) (casasB ?casasB) (casasN ?casasN))) ;actualizo el tablero
     )
+
+    (bind ?dado1 (nth$ 1 ?dados))
+    (if (<= ?dado1 0)
+        then
+        (bind ?dado1 0)
+    )
+    (bind ?dado2 (nth$ 2 ?dados))
+    (if (<= ?dado2 0)
+        then
+        (bind ?dado2 0)
+    )
+    (bind ?dado11 (nth$ 3 ?dados))
+    (if (<= ?dado11 0)
+        then
+        (bind ?dado11 0)
+    )
+    (bind ?dado22 (nth$ 4 ?dados))
+    (if (<= ?dado22 0)
+        then
+        (bind ?dado22 0)
+    )
+
+    (if (and (and (and (eq ?dado1 0)  (eq ?dado2 0)) (eq ?dado11 0))  (eq ?dado22 0)) then ; si no quedan dados
+        (printout t "Turno realizado!" crlf )
+        
+        else
+
+        (assert (moverFichaBlancas ?dado1 ?dado2 ?dado11 ?dado22 ?fichas))
+
+    )
+
+    (retract ?t) ;elimino el tablero anterior
+    (assert (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego $?fichas) (fichasCapturadasB ?fichasCapturadasB) 
+    (fichasCapturadasN ?fichasCapturadasN) (casasB ?casasB) (casasN ?casasN))) ;actualizo el tablero
     (assert (imprimirTablero))
     (retract ?x) ;Quito el turno actual
     (if (eq ?casasB 15) then ; Todas las fichas blancas en casa
         (printout t "Ganan las fichas blancas!" crlf )
         (halt)
     )
-
+    
 )
 
 
