@@ -657,7 +657,7 @@
 (defrule moverFichaBlancas
     (declare (salience 2)) ; a lo mejor hay que cambiar la saliencia
     ?x <-(moverFichaBlancas ?dado1 ?dado2 ?dado11 ?dado22 $?datos)
-    (test (or(neq ?dado1 0)(neq ?dado2 0))) ; compruebo que no sean 0 los 2 dados
+    ;(test (or(neq ?dado1 0)(neq ?dado2 0))) ; compruebo que no sean 0 los 2 dados
     ?t<-(tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego $?fichas) (fichasCapturadasB ?fichasCapturadasB) 
     (fichasCapturadasN ?fichasCapturadasN) (casasB ?casasB) (casasN ?casasN))
 =>
