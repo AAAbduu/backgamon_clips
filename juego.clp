@@ -1,6 +1,7 @@
 (deftemplate jugador 
     (slot tipo (type INTEGER)) ;1 si humano, 2 si IA
-    (slot color (type STRING)(default "none"))
+   ; (slot color (type STRING)(default "none"))
+    (slot color (default none))
     (slot tipoDado (type INTEGER)) ; 1 dados auto , 2 dados físicos
 )
 
@@ -157,7 +158,7 @@
     )
 )
 
-(deffunction asignarMovFichasN (?color ?tipo ?tipo2 ?dado1 ?dado2  ?dado11 ?dado22 ?fichas)
+(deffunction asignarMovFichasN (?color ?tipo ?dado1 ?dado2  ?dado11 ?dado22 ?fichas)
     (if (eq ?color N)
     then
         (if (eq ?tipo 1) then
@@ -165,25 +166,13 @@
         else
             (assert (moverFichaNegrasPC ?dado1 ?dado2 ?dado11 ?dado22 ?fichas))   ;mueve fichas blancas IA
         )
-    else
-        (if (eq ?tipo2 1) then
-            (assert (moverFichaNegras ?dado1 ?dado2 ?dado11 ?dado22 ?fichas)) ;mueve fichas blancas humano
-        else
-            (assert (moverFichaNegrasPC ?dado1 ?dado2 ?dado11 ?dado22 ?fichas))   ;mueve fichas blancas IA
-        )
     )
 )
 
-(deffunction asignarMovFichasB (?color ?tipo ?tipo2 ?dado1 ?dado2 ?dado11 ?dado22 ?fichas)
+(deffunction asignarMovFichasB (?color ?tipo ?dado1 ?dado2 ?dado11 ?dado22 ?fichas)
     (if (eq ?color B)
     then
         (if (eq ?tipo 1) then
-            (assert (moverFichaBlancas ?dado1 ?dado2 ?dado11 ?dado22 ?fichas)) ;mueve fichas blancas humano
-        else
-            (assert (moverFichaBlancasPC ?dado1 ?dado2 ?dado11 ?dado22 ?fichas))   ;mueve fichas blancas IA
-        )
-    else
-        (if (eq ?tipo2 1) then
             (assert (moverFichaBlancas ?dado1 ?dado2 ?dado11 ?dado22 ?fichas)) ;mueve fichas blancas humano
         else
             (assert (moverFichaBlancasPC ?dado1 ?dado2 ?dado11 ?dado22 ?fichas))   ;mueve fichas blancas IA
@@ -293,7 +282,7 @@
 
     ;crear tablero inicial
     (bind ?tablero (assert (tablero (id 1) (idPadre 0) (turno ?turno)
-     (jugadores ?j1 ?j2) (juego -2 -2 -2 -2 -2 -5 0 0 0 0 0 0 0 0 0 0 0 0 5 2 2 2 2 2) ;table inicial bueno (juego 2 0 0 0 0 -5 0 -3 0 0 0 5 -5 0 0 0 3 0 5 0 0 0 0 -2)
+     (jugadores ?j1 ?j2) (juego 2 0 0 0 0 -5 0 -3 0 0 0 5 -5 0 0 0 3 0 5 0 0 0 0 -2) ;table inicial bueno (juego 2 0 0 0 0 -5 0 -3 0 0 0 5 -5 0 0 0 3 0 5 0 0 0 0 -2), tablero prueba (juego -2 -2 -2 -2 -2 -5 0 0 0 0 0 0 0 0 0 0 0 0 5 2 2 2 2 2)
      (fichasCapturadasB 0) (fichasCapturadasN 0) (casasB 0) (casasN 0)))) ; desde la posicion 1
     (assert (imprimirTablero))
     (if (eq ?turno N) then
@@ -398,12 +387,13 @@
     ?x <-(turnoNegras ?dado1 ?dado2)
     ?t <- (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego $?fichas) (fichasCapturadasB ?fichasCapturadasB)
     (fichasCapturadasN ?fichasCapturadasN) (casasB ?casasB) (casasN ?casasN))
-    (test (eq ?turno N))
+    
     ;get player with fichas "N"
     ?j1 <- (jugador (tipo ?tipo) (color ?color) (tipoDado ?tipoDado1))
     ?j2 <- (jugador (tipo ?tipo2) (color ?color2) (tipoDado ?tipoDado2))
-
+    (test (eq ?turno ?color))
     (test (neq ?j1 ?j2))
+    
 
 =>
     (bind ?dobles 0) ;por defecto no hay dobles
@@ -432,10 +422,10 @@
            
     )
     (if (eq ?dobles 1) then
-        (asignarMovFichasN ?color ?tipo ?tipo2 ?dado1 (* 2 ?dado1) (* 3 ?dado1) (* 4 ?dado1) ?fichas)
+        (asignarMovFichasN ?color ?tipo ?dado1 (* 2 ?dado1) (* 3 ?dado1) (* 4 ?dado1) ?fichas)
 
     else
-        (asignarMovFichasN ?color ?tipo ?tipo2 ?dado1 ?dado2 (+ ?dado1 ?dado2) 0 ?fichas)
+        (asignarMovFichasN ?color ?tipo ?dado1 ?dado2 (+ ?dado1 ?dado2) 0 ?fichas)
     )
 
     (bind ?turnoN B)    
@@ -452,9 +442,9 @@
     ?x <-(turnoBlancas ?dado1 ?dado2)
     ?t <-(tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego $?fichas) (fichasCapturadasB ?fichasCapturadasB)
      (fichasCapturadasN ?fichasCapturadasN) (casasB ?casasB) (casasN ?casasN))
-    (test (eq ?turno B))
     ?j1 <- (jugador (tipo ?tipo) (color ?color) (tipoDado ?tipoDado1))
     ?j2 <- (jugador (tipo ?tipo2) (color ?color2) (tipoDado ?tipoDado2))
+    (test (eq ?turno ?color))
     (test (neq ?j1 ?j2))
     
 =>
@@ -481,10 +471,10 @@
 
     ;check if jugador blancas is human
     (if (eq ?dobles 1) then
-        (asignarMovFichasB ?color ?tipo ?tipo2 ?dado1 (* 2 ?dado1) (* 3 ?dado1) (* 4 ?dado1) ?fichas)
+        (asignarMovFichasB ?color ?tipo ?dado1 (* 2 ?dado1) (* 3 ?dado1) (* 4 ?dado1) ?fichas)
 
     else
-        (asignarMovFichasB ?color ?tipo ?tipo2 ?dado1 ?dado2 (+ ?dado1 ?dado2) 0 ?fichas)
+        (asignarMovFichasB ?color ?tipo ?dado1 ?dado2 (+ ?dado1 ?dado2) 0 ?fichas)
     )
 
     (bind ?turnoN N)
@@ -846,6 +836,70 @@
     
 )
 
+(defrule moverFichaNegrasPC
+    (declare (salience 2)) ; a lo mejor hay que cambiar la saliencia
+    ?x <-(moverFichaNegrasPC ?dado1 ?dado2 ?dado11 ?dado22 $?datos)
+    ?t <- (tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego $?fichas) (fichasCapturadasB ?fichasCapturadasB) 
+    (fichasCapturadasN ?fichasCapturadasN) (casasB ?casasB) (casasN ?casasN))
+=>
+    (bind ?dobles 0); por defecto no hay dobles
+    (if (> ?dado22 0) then
+        (bind ?dobles 1)    ;hay dobles
+    )
+
+    (bind ?dados (create$ ?dado1 ?dado2 ?dado11 ?dado22)); meto todos las combinaciones de movimientos
+
+    ;(bind ?todasEnCasaN (comprobarCasaN ?casasN ?fichas)) ;compruebo si todas las fichas estan en casa
+
+    ;(bind ?movimientos (create$))
+
+    ;(loop-for-count (?i (length$ ?dados))
+        ;(bind ?dado (nth$ ?i ?dados))
+        ;(if (> ?dado 0) then
+            ;(bind ?movimientosDisponibles (movimientosLegalesN ?dado ?fichasCapturadasN ?todasEnCasaN ?fichas))
+            ;insert into movimientos
+            ;(bind ?movimientos (create$ ?movimientos ?movimientosDisponibles))
+        ;)
+    ;)
+
+    (open "pregunta.txt" pregunta "r+") 
+    (printout pregunta ?fichas " " ?dados crlf)
+    (close movimientos)
+
+    (open "respuesta.txt" respuesta "r+")
+    (bind ?movimientos (readline respuesta))
+    (while (eq (length$ ?movimientos) 0) do
+        (bind ?movimientos (readline respuesta))
+    )
+
+)
+
+(defrule moverFichaBlancasPC
+    (declare (salience 2)) ; a lo mejor hay que cambiar la saliencia
+    ?x <-(moverFichaBlancasPC ?dado1 ?dado2 ?dado11 ?dado22 $?datos)
+    ?t<-(tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego $?fichas) (fichasCapturadasB ?fichasCapturadasB) 
+    (fichasCapturadasN ?fichasCapturadasN) (casasB ?casasB) (casasN ?casasN))
+=>
+    (bind ?dobles 0); por defecto no hay dobles
+    (if (> ?dado22 0) then
+        (bind ?dobles 1)    ;hay dobles
+    )
+
+    (bind ?dados (create$ ?dado1 ?dado2 ?dado11 ?dado22)); meto todos las combinaciones de movimientos
+
+    (bind ?todasEnCasaB (comprobarCasaB ?casasB ?fichas)) ;compruebo si todas las fichas estan en casa
+
+    (bind ?movimientos (create$))
+
+    (loop-for-count (?i (length$ ?dados))
+        (bind ?dado (nth$ ?i ?dados))
+        (if (> ?dado 0) then
+            (bind ?movimientosDisponibles (movimientosLegalesB ?dado ?fichasCapturadasB ?todasEnCasaB ?fichas))
+            ;insert into movimientos
+            (bind ?movimientos (create$ ?movimientos ?movimientosDisponibles))
+        )
+    )
+)
 
 
 
