@@ -111,27 +111,30 @@
     (return ?movimientos)
 )
 
-(deffunction comprobarCasaB (?casasB ?fichas) ;Comprueba si las fichas blancas estan en casa
-    (bind ?contador 0)
-    (loop-for-count (?i 19 24)
-        (bind ?contador (+ (nth$ ?i ?fichas) ?contador))
-    )
-    (if (eq (- 15 ?casasB) ?contador) then ;Si todas las fichas estan en casa
-        (return 1) 
+(deffunction comprobarCasaB (?fichasCapturadasB ?fichas) ;Comprueba si las fichas blancas estan en casa
+    (if (eq ?fichasCapturadasB 0) then ;Si no hay fichas capturadas
+        (loop-for-count (?i 1 18)
+            (if (> (nth$ ?i ?fichas) 0) then ;Si hay alguna ficha blanca en las posiciones 1-18 devuelvo 0
+                (return 0)
+            )
+        )
+        (return 1)
     )
     (return 0)
 )
 
-(deffunction comprobarCasaN (?casasN ?fichas) ;Comprueba si las fichas negras estan en casa
-    (bind ?contador 0)
-    (bind ?i 6)
-    (while (neq ?i 0)
-        (bind ?contador (+ (abs(nth$ ?i ?fichas)) ?contador))
-        (bind ?i (- ?i 1))
+(deffunction comprobarCasaN (?fichasCapturadasN ?fichas) ;Comprueba si las fichas negras estan en casa
+    (if (eq ?fichasCapturadasN 0) then ;Si no hay fichas capturadas
+        (bind ?i 24)
+        (while (> ?i 6)
+            (if (< (nth$ ?i ?fichas) 0) then ;Si hay alguna ficha negra en las posiciones 19-24 devuelvo 0
+                (return 0)
+            )
+            (bind ?i (- ?i 1))
+        )
+        (return 1)
     )
-    (if (eq (- 15 ?casasN) ?contador) then ;Si todas las fichas estan en casa
-        (return 1) 
-    )
+
     (return 0)
 )
 
@@ -295,7 +298,7 @@
 
     ;crear tablero inicial
     (bind ?tablero (assert (tablero (id 1) (idPadre 0) (turno ?turno)
-     (jugadores ?j1 ?j2) (juego -5 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 2) ;table inicial bueno (juego 2 0 0 0 0 -5 0 -3 0 0 0 5 -5 0 0 0 3 0 5 0 0 0 0 -2), tablero prueba (juego -2 -2 -2 -2 -2 -5 0 0 0 0 0 0 0 0 0 0 0 0 5 2 2 2 2 2)
+     (jugadores ?j1 ?j2) (juego -15 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 15) ;table inicial bueno (juego 2 0 0 0 0 -5 0 -3 0 0 0 5 -5 0 0 0 3 0 5 0 0 0 0 -2), tablero prueba (juego -2 -2 -2 -2 -2 -5 0 0 0 0 0 0 0 0 0 0 0 0 5 2 2 2 2 2)
      (fichasCapturadasB 0) (fichasCapturadasN 0) (casasB 0) (casasN 0)))) ; desde la posicion 1 ;;;;tablero con error ahora: (juego 5 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -2)
     (assert (imprimirTablero))
     (if (eq ?turno N) then
@@ -511,7 +514,7 @@
 
     (bind ?dados (create$ ?dado1 ?dado2 ?dado11 ?dado22)); meto todos las combinaciones de movimientos
 
-    (bind ?todasEnCasaN (comprobarCasaN ?casasN ?fichas)) ;compruebo si todas las fichas estan en casa
+    (bind ?todasEnCasaN (comprobarCasaN ?fichasCapturadasN ?fichas)) ;compruebo si todas las fichas estan en casa
 
     (bind ?movimientos (create$))
 
@@ -688,7 +691,7 @@
 
     (bind ?dados (create$ ?dado1 ?dado2 ?dado11 ?dado22)); meto todos las combinaciones de movimientos
 
-    (bind ?todasEnCasaB (comprobarCasaB ?casasB ?fichas)) ;compruebo si todas las fichas estan en casa
+    (bind ?todasEnCasaB (comprobarCasaB ?fichasCapturadasB ?fichas)) ;compruebo si todas las fichas estan en casa
 
     (bind ?movimientos (create$))
 
@@ -862,7 +865,7 @@
 
     (bind ?dados (create$ ?dado1 ?dado2 ?dado11 ?dado22)); meto todos las combinaciones de movimientos
 
-    (bind ?todasEnCasaN (comprobarCasaN ?casasN ?fichas)) ;compruebo si todas las fichas estan en casa
+    (bind ?todasEnCasaN (comprobarCasaN ?fichasCapturadasN ?fichas)) ;compruebo si todas las fichas estan en casa
 
     (bind ?movimientos (create$))
 
@@ -1069,7 +1072,7 @@
 
     (bind ?dados (create$ ?dado1 ?dado2 ?dado11 ?dado22)); meto todos las combinaciones de movimientos
 
-    (bind ?todasEnCasaB (comprobarCasaB ?casasB ?fichas)) ;compruebo si todas las fichas estan en casa
+    (bind ?todasEnCasaB (comprobarCasaB ?fichasCapturadasB ?fichas)) ;compruebo si todas las fichas estan en casa
 
     (bind ?movimientos (create$))
 
