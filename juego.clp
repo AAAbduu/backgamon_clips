@@ -205,7 +205,7 @@
 
     (printout t "¿Seras humano o IA? (1 para humano, 2 para IA):" ) 
     ;(bind ?tipo1 (read))
-    (bind ?tipo1 1)
+    (bind ?tipo1 2)
     (bind ?color1 "none")
     (printout t "¿Qué color quieres coger? (N o B): " )
     ;(bind ?color1 (read))
@@ -222,7 +222,7 @@
 
     (printout t "¿Seras humano o IA? (1 para humano, 2 para IA):" )
     ;(bind ?tipo2 (read))
-    (bind ?tipo2 1)
+    (bind ?tipo2 2)
     (if (eq ?color1 N) then
         (bind ?color2 B)
     else
@@ -298,8 +298,8 @@
 
     ;crear tablero inicial
     (bind ?tablero (assert (tablero (id 1) (idPadre 0) (turno ?turno)
-     (jugadores ?j1 ?j2) (juego -15 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 15) ;table inicial bueno (juego 2 0 0 0 0 -5 0 -3 0 0 0 5 -5 0 0 0 3 0 5 0 0 0 0 -2), tablero prueba (juego -2 -2 -2 -2 -2 -5 0 0 0 0 0 0 0 0 0 0 0 0 5 2 2 2 2 2)
-     (fichasCapturadasB 0) (fichasCapturadasN 0) (casasB 0) (casasN 0)))) ; desde la posicion 1 ;;;;tablero con error ahora: (juego 5 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -2)
+     (jugadores ?j1 ?j2) (juego 2 0 0 0 0 -5 0 -3 0 0 0 5 -5 0 0 0 3 0 5 0 0 0 0 -2) ;table inicial bueno (juego 2 0 0 0 0 -5 0 -3 0 0 0 5 -5 0 0 0 3 0 5 0 0 0 0 -2), tablero prueba (juego -2 -2 -2 -2 -2 -5 0 0 0 0 0 0 0 0 0 0 0 0 5 2 2 2 2 2)
+     (fichasCapturadasB 0) (fichasCapturadasN 0) (casasB 0) (casasN 0)))) ; desde la posicion 1 ;;;;tablero con error ahora: (juego -5 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 2)
     (assert (imprimirTablero))
     (if (eq ?turno N) then
         (assert (turnoNegras 0 0))
@@ -885,27 +885,59 @@
     (close pregunta)
     (close mov_legales)
 
-    (pause 3) ;espero 7 segundos para que el otro programa escriba la respuesta
+  
+    (open "leerSemaforo.txt" semaforo "r")
+    (bind ?semaforo (read semaforo))
+    (close semaforo)
+    (while (eq ?semaforo EOF) do
+        (open "leerSemaforo.txt" semaforo "r")
+        (bind ?semaforo (read semaforo))
+        (close semaforo)
+    )
+
+    (system "rm leerSemaforo.txt")
+    (open "leerSemaforo.txt" semaforo "w+")
 
     (open "respuesta.txt" respuesta "r")
     (bind ?i (read respuesta))
-    (printout t "Movimiento elegido: " ?i crlf)
     (close respuesta)
+    (close semaforo)
     (bind ?i (integer ?i))
-    (system "rm respuesta.txt")
 
 
     (if (eq (length$ ?movimientos) 0) then ; si no hay movimientos disponibles
         (printout t "No hay movimientos disponibles." crlf )
     )
 
-    (printout t "Movimiento elegido: " ?i crlf)
+    (bind ?cantMov (length$ ?movimientos))
+    (bind ?cantMov (/ ?cantMov 4))
 
+     (bind ?cantMov (integer ?cantMov))
+
+
+    (if (and (neq (type ?i) INTEGER) (neq ?cantMov 0))
+        then
+        (bind ?i (random 1 ?cantMov))
+    )
+
+    (if (and (eq ?i 0) (neq ?cantMov 0)) then
+        (bind ?i (random 1 ?cantMov))
+    )
+
+    (if (and(> ?i (length$ ?movimientos))(neq ?cantMov 0)) then
+        (bind ?i (integer ?i))
+        (bind ?i (mod ?i ?cantMov))
+    )
+
+
+
+
+    (printout t "Movimiento elegido: " ?i crlf)
     (bind ?i (* ?i 4))
 
-    (if (eq ?i 0) then
-        (bind ?i (random 1 (length$ ?movimientos)))
-    )
+
+
+    (system "rm respuesta.txt")
 
 
     (bind ?cantMov (length$ ?movimientos))
@@ -1045,12 +1077,12 @@
     (if (eq ?casasN 15) then ; Todas las fichas negras en casa
         (printout t "Ganan las fichas negras!" crlf )
         (open "pregunta.txt" pregunta "r+")
-        (printout pregunta "FIN NEGRAS" crlf)
+        (printout pregunta "1")
         (close pregunta)
-        (pause 10)
+        ;(pause 3)
         (reset)
-        (printout t "Reiniciando... Pulse una tecla para reiniciar" crlf)
-        (bind ?x (read))
+       ;(printout t "Reiniciando... Pulse una tecla para reiniciar" crlf)
+        ;(bind ?x (read))
         (run)
     )
 
@@ -1092,25 +1124,55 @@
     (close pregunta)
     (close mov_legales)
 
-    (pause 3) ;espero 7 segundos para que el otro programa escriba la respuesta
+
+    (open "leerSemaforo.txt" semaforo "r")
+    (bind ?semaforo (read semaforo))
+    (close semaforo)
+    (while (eq ?semaforo EOF) do
+        (open "leerSemaforo.txt" semaforo "r")
+        (bind ?semaforo (read semaforo))
+        (close semaforo)
+    )
+
+
+    (system "rm leerSemaforo.txt")
+    (open "leerSemaforo.txt" semaforo "w+")
 
     (open "respuesta.txt" respuesta "r")
     (bind ?i (read respuesta))
-    (printout t "Movimiento elegido: " ?i crlf)
     (close respuesta)
+    (close semaforo)
     (bind ?i (integer ?i))
-    (system "rm respuesta.txt")
 
 
     (if (eq (length$ ?movimientos) 0) then ; si no hay movimientos disponibles
         (printout t "No hay movimientos disponibles." crlf )
     )
 
-    (bind ?i (* ?i 4))
+    (bind ?cantMov (length$ ?movimientos))
+    (bind ?cantMov (/ ?cantMov 4))
 
-    (if (eq ?i 0) then
-        (bind ?i (random 1 (length$ ?movimientos)))
+    (bind ?cantMov (integer ?cantMov))
+
+
+    (if (and (neq (type ?i) INTEGER) (neq ?cantMov 0))
+        then
+        (bind ?i (random 1 ?cantMov))
     )
+
+    (if (and (eq ?i 0) (neq ?cantMov 0)) then
+        (bind ?i (random 1 ?cantMov))
+    )
+
+    (if (and(> ?i (length$ ?movimientos))(neq ?cantMov 0)) then
+        (bind ?i (integer ?i))
+        (bind ?i (mod ?i ?cantMov))
+    )
+
+
+    (printout t "Movimiento elegido: " ?i crlf)
+    (bind ?i (* ?i 4))
+    (system "rm respuesta.txt")
     
     
     (bind ?cantMov (length$ ?movimientos))
@@ -1246,12 +1308,12 @@
     (if (eq ?casasB 15) then ; Todas las fichas blancas en casa
         (printout t "Ganan las fichas blancas!" crlf )
         (open "pregunta.txt" pregunta "r+")
-        (printout pregunta "FIN BLANCAS" crlf)
+        (printout pregunta "1")
         (close pregunta)
-        (pause 10)
+       ; (pause 3)
         (reset)
-        (printout t "Reiniciando... Pulse una tecla para reiniciar" crlf)
-        (bind ?x (read))
+        ;(printout t "Reiniciando... Pulse una tecla para reiniciar" crlf)
+        ;(bind ?x (read))
         (run)
     )
     
