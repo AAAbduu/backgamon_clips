@@ -204,16 +204,16 @@
 =>
 
     (printout t "¿Seras humano o IA? (1 para humano, 2 para IA):" ) 
-    ;(bind ?tipo1 (read))
-    (bind ?tipo1 2)
+    (bind ?tipo1 (read))
+    ;(bind ?tipo1 2)
     (bind ?color1 "none")
     (printout t "¿Qué color quieres coger? (N o B): " )
-    ;(bind ?color1 (read))
-    (bind ?color1 N)
+    (bind ?color1 (read))
+    ;(bind ?color1 N)
     (bind ?color1 (sym-cat ?color1))
     (printout t "¿Como quieres los tipos de dados (1 para automaticos, 2 para fisicos)")
-    ;(bind ?tipoDado1 (read))
-    (bind ?tipoDado1 1)
+    (bind ?tipoDado1 (read))
+    ;(bind ?tipoDado1 1)
     (bind ?j1 (assert (jugador (tipo ?tipo1) (color ?color1) (tipoDado ?tipoDado1))))
 
     
@@ -221,16 +221,16 @@
     (bind ?j2 ?j1)
 
     (printout t "¿Seras humano o IA? (1 para humano, 2 para IA):" )
-    ;(bind ?tipo2 (read))
-    (bind ?tipo2 2)
+    (bind ?tipo2 (read))
+    ;(bind ?tipo2 2)
     (if (eq ?color1 N) then
         (bind ?color2 B)
     else
         (bind ?color2 N)
     )
     (printout t "¿Como quieres los tipos de dados (1 para automaticos, 2 para fisicos)")
-    ;(bind ?tipoDado2 (read))
-    (bind ?tipoDado2 1)
+    (bind ?tipoDado2 (read))
+    ;(bind ?tipoDado2 1)
     (bind ?j2 (assert (jugador (tipo ?tipo2) (color ?color2) (tipoDado ?tipoDado2))))
 
     
@@ -238,8 +238,8 @@
 
     (if (eq ?tipo1 1) then ;Si el jugador 1 y 2 son humanos o el jugador 1 es humano y el jugador 2 IA 
         (printout t "Jugador 1, ¿Cara o cruz? (1 o 2): " )
-        ;(bind ?cCJ1 (read))
-        (bind ?cCJ1 1)
+        (bind ?cCJ1 (read))
+        ;(bind ?cCJ1 1)
 
         (if (eq ?cCJ1 1) then
             (printout t "Jugador 1 ha escogido cara." crlf )
@@ -257,8 +257,8 @@
 
     (if (eq ?tipo1 2) then ;Si el jugador 1 es IA y el jugador 2 humano
         (printout t "Jugador 2, ¿Cara o cruz?: " )
-        ;(bind ?cCJ2 (read))
-        (bind ?cCJ2 1)
+        (bind ?cCJ2 (read))
+        ;(bind ?cCJ2 1)
 
         (if (eq ?cCJ2 1) then
             (printout t "Jugador 2 ha escogido cara." crlf )
