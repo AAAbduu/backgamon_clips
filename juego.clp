@@ -197,15 +197,13 @@
     ;Realiza el ajuste de la función de evaluación en funcion de diferentes factores
 
     ; Ajuste la utilidad por la cantidad de fichas en casa.
-    (bind ?utilidad (- ?utilidad ?casasB))
     (bind ?utilidad (+ ?utilidad ?casasN))
 
     ; Ajuste la utilidad por la cantidad de fichas capturadas.
     (bind ?utilidad (+ ?utilidad (* 2 ?fichasCapturadasB)))
-    (bind ?utilidad (- ?utilidad (* 2 ?fichasCapturadasN)))
+    (bind ?utilidad (- ?utilidad ?fichasCapturadasN))
 
     (bind ?bloqueosN 0)
-
     (bind ?unaFichaN 0)
 
     (loop-for-count (?i 1 24)
@@ -218,10 +216,14 @@
     )
     ; Ajuste la utilidad por la cantidad de bloqueos y fichas solas
 
-    (bind ?utilidad (+ ?utilidad (* ?bloqueosN 2)))
-    (bind ?utilidad (- ?utilidad (* ?unaFichaN 2)))
+    (bind ?todasEnCasaN (comprobarCasaN ?fichasCapturadasN ?fichas))
+    (if (eq ?todasEnCasaN 1) then
+        (bind ?utilidad (+ ?utilidad 30))
+    else
+        (bind ?utilidad (+ ?utilidad (* ?bloqueosN 2)))
+        (bind ?utilidad (- ?utilidad ?unaFichaN))
+    )
 
-    
     (return ?utilidad)
 )
 
@@ -255,22 +257,19 @@
         
         (bind ?posicion (* ?i 4))
         (bind ?tipo(nth$ (- ?posicion 1) ?movimientos)) ; tipo de movimiento
-        (if (eq ?tipo 1) then
-            (bind ?utilidad (+ ?utilidad 1)) ; si es un movimiento normal
-        )
         (if (eq ?tipo 2) then
-            (bind ?utilidad (+ ?utilidad 12)) ; si es un movimiento de comer
+            (bind ?utilidad (+ ?utilidad 10)) ; si es un movimiento de comer
         )
         (if (eq ?tipo 3) then
-            (bind ?utilidad (+ ?utilidad 20)) ; si es un movimiento de meter en casa
+            (bind ?utilidad (+ ?utilidad 30)) ; si es un movimiento de meter en casa
         )
 
         (bind ?dadoUsado (nth$ ?posicion ?movimientos)) ; dadoUsado
         (bind ?origen (nth$ (- ?posicion 3) ?movimientos)) 
         (bind ?destino (nth$ (- ?posicion 2) ?movimientos))
 
-        (if (<= (nth$ ?destino ?fichas) -2) then ; si hay más de una ficha negra en el destino
-            (bind ?utilidad (+ ?utilidad 10))
+        (if (and (neq ?destino 0)(<= (nth$ ?destino ?fichas) -2)) then ; si hay más de una ficha negra en el destino
+            (bind ?utilidad (+ ?utilidad 5))
         )
         ;;;;;;;;;;;;;;Realizo el movimiento en el tablero;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -332,16 +331,14 @@
     (bind ?casasN (fact-slot-value ?tablero casasN))
 
     ; Ajuste la utilidad por la cantidad de fichas en casa.
-    (bind ?utilidad (- ?utilidad ?casasB))
-    (bind ?utilidad (- ?utilidad ?casasN))
+    (bind ?utilidad (+ ?utilidad ?casasB))
 
     ; Ajuste la utilidad por la cantidad de fichas capturadas.
-    (bind ?utilidad (+ ?utilidad (* 2 ?fichasCapturadasB)))
+    (bind ?utilidad (- ?utilidad ?fichasCapturadasB))
     (bind ?utilidad (+ ?utilidad (* 2 ?fichasCapturadasN)))
 
-    (bind ?bloqueosN 0)
+  
     (bind ?bloqueosB 0)
-    (bind ?unaFichaN 0)
     (bind ?unaFichaB 0)
     (loop-for-count (?i 1 24)
         (if (>= (nth$ ?i ?fichas) 2) then
@@ -352,8 +349,14 @@
 
     )
     ; Ajuste la utilidad por la cantidad de bloqueos y fichas solas
-    (bind ?utilidad (+ ?utilidad ?bloqueosB))
-    (bind ?utilidad (- ?utilidad (* ?unaFichaB 2)))
+    (bind ?todasEnCasaB (comprobarCasaB ?fichasCapturadasB ?fichas))
+    (if (eq ?todasEnCasaB 1) then
+        (bind ?utilidad (+ ?utilidad 30))
+    else
+        (bind ?utilidad (+ ?utilidad (* ?bloqueosB 2)))
+        (bind ?utilidad (- ?utilidad ?unaFichaB 2))
+    )
+
 
     (return ?utilidad)
 )
@@ -388,11 +391,8 @@
 
         (bind ?posicion (* ?i 4))
         (bind ?tipo(nth$ (- ?posicion 1) ?movimientos)) ; tipo de movimiento
-        (if (eq ?tipo 1) then
-            (bind ?utilidad (+ ?utilidad 1)) ; si es un movimiento normal
-        )
         (if (eq ?tipo 2) then
-            (bind ?utilidad (+ ?utilidad 20)) ; si es un movimiento de comer
+            (bind ?utilidad (+ ?utilidad 10)) ; si es un movimiento de comer
         )
         (if (eq ?tipo 3) then
             (bind ?utilidad (+ ?utilidad 30)) ; si es un movimiento de meter en casa
@@ -403,8 +403,8 @@
         (bind ?origen (nth$ (- ?posicion 3) ?movimientos)) 
         (bind ?destino (nth$ (- ?posicion 2) ?movimientos))
         
-        (if (<= (nth$ ?destino ?fichas) -2) then ; si hay más de una ficha negra en el destino
-            (bind ?utilidad (+ ?utilidad 10))
+        (if (and(neq ?destino 25)(>= (nth$ ?destino ?fichas) 2)) then ; si hay más de una ficha blanca en el destino
+            (bind ?utilidad (+ ?utilidad 5))
         )
         ;;;;;;;;;;;;;;Realizo el movimiento en el tablero;;;;;;;;;;;;;;;;;;;;;;;;
         (if (neq ?origen 0) then ; si no es una ficha capturada
