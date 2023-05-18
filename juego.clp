@@ -1145,19 +1145,19 @@
         )
     )
 
-    (open "pregunta.txt" pregunta "r+")
-    (open "movimientosLegales.txt" mov_legales "r+")
+    (open "pregunta.txt" pregunta "w+")
+    (open "movimientosLegales.txt" mov_legales "w+")
     (printout mov_legales ?movimientos crlf)
     (printout pregunta ?fichas " " ?dados " " ?casasN " " ?casasB " " ?fichasCapturadasN " " ?fichasCapturadasB " " crlf)
     (close pregunta)
     (close mov_legales)
 
   
-    (open "leerSemaforo.txt" semaforo "r")
+    (open "leerSemaforo.txt" semaforo "w")
     (bind ?semaforo (read semaforo))
     (close semaforo)
     (while (eq ?semaforo EOF) do
-        (open "leerSemaforo.txt" semaforo "r")
+        (open "leerSemaforo.txt" semaforo "w")
         (bind ?semaforo (read semaforo))
         (close semaforo)
     )
@@ -1165,7 +1165,7 @@
     (system "rm leerSemaforo.txt")
     (open "leerSemaforo.txt" semaforo "w+")
 
-    (open "respuesta.txt" respuesta "r")
+    (open "respuesta.txt" respuesta "w")
     (bind ?i (read respuesta))
     (close respuesta)
     (close semaforo)
@@ -1184,19 +1184,19 @@
 
     (if (and (neq (type ?i) INTEGER) (neq ?cantMov 0))
         then
-        (bind ?i (random 1 ?cantMov))
-        ;(bind ?i (evaluarProximosEstadosN ?t ?movimientos))
+        ;(bind ?i (random 1 ?cantMov))
+        (bind ?i (evaluarProximosEstadosN ?t ?movimientos))
     )
 
     (if (and (eq ?i 0) (neq ?cantMov 0)) then
-        (bind ?i (random 1 ?cantMov))
-        ;(bind ?i (evaluarProximosEstadosN ?t ?movimientos))
+        ;(bind ?i (random 1 ?cantMov))
+        (bind ?i (evaluarProximosEstadosN ?t ?movimientos))
     )
 
-    (if (and(> ?i (length$ ?movimientos))(neq ?cantMov 0)) then
-        (bind ?i (integer ?i))
-        (bind ?i (mod ?i ?cantMov))
-    )
+    ;(if (and(> ?i (length$ ?movimientos))(neq ?cantMov 0)) then
+     ;   (bind ?i (integer ?i))
+      ;  (bind ?i (mod ?i ?cantMov))
+    ;)
 
 
 
@@ -1386,19 +1386,19 @@
         )
     )
 
-    (open "pregunta.txt" pregunta "r+")
-    (open "movimientosLegales.txt" mov_legales "r+")
+    (open "pregunta.txt" pregunta "w+")
+    (open "movimientosLegales.txt" mov_legales "w+")
     (printout mov_legales ?movimientos crlf)
     (printout pregunta ?fichas " " ?dados " " ?casasN " " ?casasB " " ?fichasCapturadasN " " ?fichasCapturadasB " " crlf)
     (close pregunta)
     (close mov_legales)
 
 
-    (open "leerSemaforo.txt" semaforo "r")
+    (open "leerSemaforo.txt" semaforo "w")
     (bind ?semaforo (read semaforo))
     (close semaforo)
     (while (eq ?semaforo EOF) do
-        (open "leerSemaforo.txt" semaforo "r")
+        (open "leerSemaforo.txt" semaforo "w")
         (bind ?semaforo (read semaforo))
         (close semaforo)
     )
@@ -1407,7 +1407,7 @@
     (system "rm leerSemaforo.txt")
     (open "leerSemaforo.txt" semaforo "w+")
 
-    (open "respuesta.txt" respuesta "r")
+    (open "respuesta.txt" respuesta "w")
     (bind ?i (read respuesta))
     (close respuesta)
     (close semaforo)
@@ -1426,19 +1426,19 @@
 
     (if (and (neq (type ?i) INTEGER) (neq ?cantMov 0))
         then
-        (bind ?i (random 1 ?cantMov))
-        ;(bind ?i (evaluarProximosEstadosB ?t ?movimientos))
+        ;(bind ?i (random 1 ?cantMov))
+        (bind ?i (evaluarProximosEstadosB ?t ?movimientos))
     )
 
     (if (and (eq ?i 0) (neq ?cantMov 0)) then
-        (bind ?i (random 1 ?cantMov))
-        ;(bind ?i (evaluarProximosEstadosB ?t ?movimientos))
+        ;(bind ?i (random 1 ?cantMov))
+        (bind ?i (evaluarProximosEstadosB ?t ?movimientos))
     )
 
-    (if (and(> ?i (length$ ?movimientos))(neq ?cantMov 0)) then
-        (bind ?i (integer ?i))
-        (bind ?i (mod ?i ?cantMov))
-    )
+    ;(if (and(> ?i (length$ ?movimientos))(neq ?cantMov 0)) then
+     ;   (bind ?i (integer ?i))
+      ;  (bind ?i (mod ?i ?cantMov))
+    ;)
 
 
     (printout t "Movimiento elegido: " ?i crlf)
