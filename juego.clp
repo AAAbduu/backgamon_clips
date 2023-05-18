@@ -184,7 +184,274 @@
 )
 
 
+(deffunction funcionEvaluacionEstadoN (?tablero); funcion que dado un tablero devuelve la utilidad de ese tablero
+    ;estado del tablero
+    (bind ?utilidad 0)
+    (bind ?turno (fact-slot-value ?tablero turno))
+    (bind ?fichas (fact-slot-value ?tablero juego))
+    (bind ?fichasCapturadasB (fact-slot-value ?tablero fichasCapturadasB))
+    (bind ?fichasCapturadasN (fact-slot-value ?tablero fichasCapturadasN))
+    (bind ?casasB (fact-slot-value ?tablero casasB))
+    (bind ?casasN (fact-slot-value ?tablero casasN))
 
+    ;Realiza el ajuste de la función de evaluación en funcion de diferentes factores
+
+    ; Ajuste la utilidad por la cantidad de fichas en casa.
+    (bind ?utilidad (- ?utilidad ?casasB))
+    (bind ?utilidad (+ ?utilidad ?casasN))
+
+    ; Ajuste la utilidad por la cantidad de fichas capturadas.
+    (bind ?utilidad (+ ?utilidad (* 2 ?fichasCapturadasB)))
+    (bind ?utilidad (- ?utilidad (* 2 ?fichasCapturadasN)))
+
+    (bind ?bloqueosN 0)
+
+    (bind ?unaFichaN 0)
+
+    (loop-for-count (?i 1 24)
+
+        (if (<= (nth$ ?i ?fichas) -2) then
+            (bind ?bloqueosN (+ ?bloqueosN 1)))
+
+        (if (eq (nth$ ?i ?fichas) -1) then
+            (bind ?unaFichaN (+ ?unaFichaN 1)))
+    )
+    ; Ajuste la utilidad por la cantidad de bloqueos y fichas solas
+
+    (bind ?utilidad (+ ?utilidad (* ?bloqueosN 2)))
+    (bind ?utilidad (- ?utilidad (* ?unaFichaN 2)))
+
+    
+    (return ?utilidad)
+)
+
+
+(deffunction evaluarProximosEstadosN (?tablero ?movimientos) ;Funcion que evalua los proximos estados (tableros) 
+                                                            ;a partir de los movimientos disponibles y devuelve el mejor movimiento
+
+
+    (bind ?id (fact-slot-value ?tablero id))
+    (bind ?idPadre (fact-slot-value ?tablero idPadre))
+    (bind ?jugadores (fact-slot-value ?tablero jugadores))                                                     
+    (bind ?turno (fact-slot-value ?tablero turno))
+    (bind ?fichas (fact-slot-value ?tablero juego))
+    (bind ?fichasCapturadasB (fact-slot-value ?tablero fichasCapturadasB))
+    (bind ?fichasCapturadasN (fact-slot-value ?tablero fichasCapturadasN))
+    (bind ?casasB (fact-slot-value ?tablero casasB))
+    (bind ?casasN (fact-slot-value ?tablero casasN))
+
+    (bind ?cantMov (length$ ?movimientos))
+    (bind ?cantMov (/ ?cantMov 4))
+    (bind ?cantMov (integer ?cantMov))
+
+    (bind ?mejorEval -1000)
+    (bind ?mejorMov 0)
+    (bind ?i 1)
+    (bind ?utilidad 0)
+
+    (while (<= ?i ?cantMov) do
+
+        ;;;;;;;;;;;;;;Ajuste de utilidad en base a los movimientos;;;;;;;;;;;;;;;;;;;;;;;;
+        
+        (bind ?posicion (* ?i 4))
+        (bind ?tipo(nth$ (- ?posicion 1) ?movimientos)) ; tipo de movimiento
+        (if (eq ?tipo 1) then
+            (bind ?utilidad (+ ?utilidad 1)) ; si es un movimiento normal
+        )
+        (if (eq ?tipo 2) then
+            (bind ?utilidad (+ ?utilidad 12)) ; si es un movimiento de comer
+        )
+        (if (eq ?tipo 3) then
+            (bind ?utilidad (+ ?utilidad 20)) ; si es un movimiento de meter en casa
+        )
+
+        (bind ?dadoUsado (nth$ ?posicion ?movimientos)) ; dadoUsado
+        (bind ?origen (nth$ (- ?posicion 3) ?movimientos)) 
+        (bind ?destino (nth$ (- ?posicion 2) ?movimientos))
+
+        (if (<= (nth$ ?destino ?fichas) -2) then ; si hay más de una ficha negra en el destino
+            (bind ?utilidad (+ ?utilidad 10))
+        )
+        ;;;;;;;;;;;;;;Realizo el movimiento en el tablero;;;;;;;;;;;;;;;;;;;;;;;;
+
+        (if (neq ?origen 25) then ; si no es una ficha capturada
+            (bind ?queHayO (nth$ ?origen ?fichas))
+        )
+        (if (neq ?destino 0) then ; si su destino no es casa
+            (bind ?queHayD (nth$ ?destino ?fichas))
+        else
+            (bind ?queHayD 0)
+        )
+
+        (if (eq ?queHayD 1) then ; hay una ficha blanca en el destino
+            (bind ?fichas (replace$ ?fichas ?destino ?destino 0))
+            (bind ?fichasCapturadasB (+ ?fichasCapturadasB 1)) ; sumo uno a las fichas capturadas blancas
+            (bind ?queHayD (nth$ ?destino ?fichas))
+
+        )
+        (if (neq ?destino 0) then ; si no se mueve a casa, entonces se mueve normal
+            (bind ?fichas (replace$ ?fichas ?destino ?destino (- ?queHayD 1))); caso generico no como
+        else ; si se mueve a casa
+            (bind ?casasN (+ ?casasN 1)) ; sumo una ficha a las casas negras
+        )
+
+        (if (neq ?origen 25) then ; si no es una ficha capturada
+            (bind ?fichas (replace$ ?fichas ?origen ?origen (+ ?queHayO 1))); caso generico no como
+        else 
+            (bind ?fichasCapturadasN (- ?fichasCapturadasN 1)) ; quito una ficha capturada negra
+        )
+    ;;;;;;;;;;;;;;;;;;;;;;;;;; duplico el tablero para evaluarlo;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+        
+        (bind ?tableroDuplicado (duplicate ?tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego $?fichas) (fichasCapturadasB ?fichasCapturadasB) 
+        (fichasCapturadasN ?fichasCapturadasN) (casasB ?casasB) (casasN ?casasN)))
+
+
+        (bind ?evaluacion (+ ?utilidad (funcionEvaluacionEstadoN ?tableroDuplicado)))
+        (if (> ?evaluacion ?mejorEval) then
+            (bind ?mejorEval ?evaluacion)
+            (bind ?mejorMov ?i)
+        )
+        (retract ?tableroDuplicado)
+        
+        (bind ?i (+ ?i 1))
+        (bind ?utilidad 0)
+    )
+
+    (return ?mejorMov)
+
+)
+
+(deffunction funcionEvaluacionEstadoB (?tablero); funcion que dado un tablero devuelve la utilidad de ese tablero
+    ;estado del tablero
+    (bind ?utilidad 0)
+    (bind ?turno (fact-slot-value ?tablero turno))
+    (bind ?fichas (fact-slot-value ?tablero juego))
+    (bind ?fichasCapturadasB (fact-slot-value ?tablero fichasCapturadasB))
+    (bind ?fichasCapturadasN (fact-slot-value ?tablero fichasCapturadasN))
+    (bind ?casasB (fact-slot-value ?tablero casasB))
+    (bind ?casasN (fact-slot-value ?tablero casasN))
+
+    ; Ajuste la utilidad por la cantidad de fichas en casa.
+    (bind ?utilidad (- ?utilidad ?casasB))
+    (bind ?utilidad (- ?utilidad ?casasN))
+
+    ; Ajuste la utilidad por la cantidad de fichas capturadas.
+    (bind ?utilidad (+ ?utilidad (* 2 ?fichasCapturadasB)))
+    (bind ?utilidad (+ ?utilidad (* 2 ?fichasCapturadasN)))
+
+    (bind ?bloqueosN 0)
+    (bind ?bloqueosB 0)
+    (bind ?unaFichaN 0)
+    (bind ?unaFichaB 0)
+    (loop-for-count (?i 1 24)
+        (if (>= (nth$ ?i ?fichas) 2) then
+            (bind ?bloqueosB (+ ?bloqueosB 1)))
+
+        (if (eq (nth$ ?i ?fichas) 1) then
+            (bind ?unaFichaB (+ ?unaFichaB 1)))
+
+    )
+    ; Ajuste la utilidad por la cantidad de bloqueos y fichas solas
+    (bind ?utilidad (+ ?utilidad ?bloqueosB))
+    (bind ?utilidad (- ?utilidad (* ?unaFichaB 2)))
+
+    (return ?utilidad)
+)
+
+
+
+(deffunction evaluarProximosEstadosB (?tablero ?movimientos) ;Funcion que evalua los proximos estados (tableros) 
+                                                            ;a partir de los movimientos disponibles y devuelve el mejor movimiento
+
+
+    (bind ?id (fact-slot-value ?tablero id))
+    (bind ?idPadre (fact-slot-value ?tablero idPadre))
+    (bind ?jugadores (fact-slot-value ?tablero jugadores))                                                     
+    (bind ?turno (fact-slot-value ?tablero turno))
+    (bind ?fichas (fact-slot-value ?tablero juego))
+    (bind ?fichasCapturadasB (fact-slot-value ?tablero fichasCapturadasB))
+    (bind ?fichasCapturadasN (fact-slot-value ?tablero fichasCapturadasN))
+    (bind ?casasB (fact-slot-value ?tablero casasB))
+    (bind ?casasN (fact-slot-value ?tablero casasN))
+
+    (bind ?cantMov (length$ ?movimientos))
+    (bind ?cantMov (/ ?cantMov 4))
+    (bind ?cantMov (integer ?cantMov))
+
+    (bind ?mejorEval -1000)
+    (bind ?mejorMov 0)
+    (bind ?i 1)
+    (bind ?utilidad 0)
+
+    (while (<= ?i ?cantMov) do
+        ;;;;;;;;;;;;;;Ajuste de utilidad en base a los movimientos;;;;;;;;;;;;;;;;;;;;;;;;
+
+        (bind ?posicion (* ?i 4))
+        (bind ?tipo(nth$ (- ?posicion 1) ?movimientos)) ; tipo de movimiento
+        (if (eq ?tipo 1) then
+            (bind ?utilidad (+ ?utilidad 1)) ; si es un movimiento normal
+        )
+        (if (eq ?tipo 2) then
+            (bind ?utilidad (+ ?utilidad 20)) ; si es un movimiento de comer
+        )
+        (if (eq ?tipo 3) then
+            (bind ?utilidad (+ ?utilidad 30)) ; si es un movimiento de meter en casa
+        )
+
+        
+        (bind ?dadoUsado (nth$ ?posicion ?movimientos)) ; dadoUsado
+        (bind ?origen (nth$ (- ?posicion 3) ?movimientos)) 
+        (bind ?destino (nth$ (- ?posicion 2) ?movimientos))
+        
+        (if (<= (nth$ ?destino ?fichas) -2) then ; si hay más de una ficha negra en el destino
+            (bind ?utilidad (+ ?utilidad 10))
+        )
+        ;;;;;;;;;;;;;;Realizo el movimiento en el tablero;;;;;;;;;;;;;;;;;;;;;;;;
+        (if (neq ?origen 0) then ; si no es una ficha capturada
+            (bind ?queHayO (nth$ ?origen ?fichas))
+        )
+        (if (neq ?destino 25) then ; si no se va a meter en casa
+            (bind ?queHayD (nth$ ?destino ?fichas))
+        else
+            (bind ?queHayD 0)
+        )
+        
+        (if (eq ?queHayD -1) then ; hay una ficha negra en el destino
+            (bind ?fichas (replace$ ?fichas ?destino ?destino 0))
+            (bind ?fichasCapturadasN (+ ?fichasCapturadasN 1)) ; sumo uno a las fichas capturadas negras
+            (bind ?queHayD (nth$ ?destino ?fichas))
+        
+        )
+        (if (neq ?destino 25) then ; si no se va a meter en casa, entonces se mueve normal
+            (bind ?fichas (replace$ ?fichas ?destino ?destino (+ ?queHayD 1))); caso generico no como
+        else ; el destino es 25 (casa)
+            (bind ?casasB (+ ?casasB 1)) ; sumo una ficha en casa
+        )
+        (if (neq ?origen 0) then ; si no es una ficha capturada, entonces se mueve normal
+            (bind ?fichas (replace$ ?fichas ?origen ?origen (- ?queHayO 1))); caso generico no como
+        else ; el origen es 0 (capturada)
+            (bind ?fichasCapturadasB (- ?fichasCapturadasB 1)) ; quito una ficha capturada blanca
+        )
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; duplico el tablero para evaluarlo;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+        
+        (bind ?tableroDuplicado (duplicate ?tablero (id ?id) (idPadre ?idPadre) (turno ?turno) (jugadores $?jugadores) (juego $?fichas) (fichasCapturadasB ?fichasCapturadasB) 
+        (fichasCapturadasN ?fichasCapturadasN) (casasB ?casasB) (casasN ?casasN)))
+
+
+        (bind ?evaluacion (+ ?utilidad (funcionEvaluacionEstadoB ?tableroDuplicado)))
+        (if (> ?evaluacion ?mejorEval) then
+            (bind ?mejorEval ?evaluacion)
+            (bind ?mejorMov ?i)
+        )
+        (retract ?tableroDuplicado)
+        
+        (bind ?i (+ ?i 1))
+        (bind ?utilidad 0)
+    )
+
+    (return ?mejorMov)
+
+)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -918,10 +1185,12 @@
     (if (and (neq (type ?i) INTEGER) (neq ?cantMov 0))
         then
         (bind ?i (random 1 ?cantMov))
+        ;(bind ?i (evaluarProximosEstadosN ?t ?movimientos))
     )
 
     (if (and (eq ?i 0) (neq ?cantMov 0)) then
         (bind ?i (random 1 ?cantMov))
+        ;(bind ?i (evaluarProximosEstadosN ?t ?movimientos))
     )
 
     (if (and(> ?i (length$ ?movimientos))(neq ?cantMov 0)) then
@@ -1158,10 +1427,12 @@
     (if (and (neq (type ?i) INTEGER) (neq ?cantMov 0))
         then
         (bind ?i (random 1 ?cantMov))
+        ;(bind ?i (evaluarProximosEstadosB ?t ?movimientos))
     )
 
     (if (and (eq ?i 0) (neq ?cantMov 0)) then
         (bind ?i (random 1 ?cantMov))
+        ;(bind ?i (evaluarProximosEstadosB ?t ?movimientos))
     )
 
     (if (and(> ?i (length$ ?movimientos))(neq ?cantMov 0)) then
